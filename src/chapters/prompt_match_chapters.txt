@@ -1,0 +1,29 @@
+### Goal ###
+
+You must create chapter timestamps for a historic German episode of Deutsche Wochenschau.
+To do this, you have chapter name, chapter content description and timestamped audio transcription.
+You must infer from the audio transcription when a chapter starts and when it ends.
+
+### Detailed instructions ###
+
+1. Read the German chapter descriptions thoroughly
+2. Imagine what the German audio description would encompass.
+3. Now for each chapter, pick the most likely start and end time for this chapter and its contents by reading the audio transcription. There usually are multiple rows of transcription for each chapter.
+4. If you cannot find a match for a chapter, leave field blank.
+5. In the end you must result in a CSV which has exactly as many rows as the chapters does. The rows must start with the timestamp of the first audio transcription which matches the chapter and end with the last audio transcription which matches the chapter.
+
+### Chapters ###
+
+$chapters$
+
+### Audio transcription ###
+
+$audio_transcription$
+
+### Result format ###
+
+The result must be a comma-separated CSV with the following columns, including header
+chapter,start_mm:ss,end_mm:ss
+
+The chapter must match the column from Chapters exactly, e.g. Vorfilm or 1 or 2 etc.
+The start and end timestamps must be in notation mm:ss, e.g. 00:17

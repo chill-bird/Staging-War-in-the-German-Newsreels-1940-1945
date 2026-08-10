@@ -1,0 +1,27 @@
+### Goal ###
+
+You must classify scenes depicted in a video section of a historic German episode of Deutsche Wochenschau.
+To do this, you must read the German chapter description and German audio transcription thoroughly
+
+### Classes ###
+
+is_war_report: The scene primarily focuses on reporting on the ongoing war and German troops are involved.
+is_combat_scene: The scene shows actual combat with German participation (staged or re-inacted does count into it). Scenes like this depict German weapons and/or German soldiers in action. Combat scenes without German involvement do NOT count.
+german_soldiers_depicted: The scene shows German soldiers. This can be combat or interaction with civilians or marches or anything more.
+
+### Chapter Description ###
+
+$chapter_description$
+
+### Audio Transcription ###
+
+$audio_transcription$
+
+### Result format ###
+
+The result must be a complete comma-separated CSV including the header.
+You must insert your boolean values inside the following CSV and return the completed CSV.
+Inserted values must be either True or False (Python booleans with first letter capitalized)
+
+episode_id,chapter,is_war_report,is_combat_scene,german_soldiers_depicted
+$filestem$,$chapter$,INSERT_IS_WAR_REPORT as bool,INSERT_IS_COMBAT_SCENE as bool, INSERT_GERMAN_SOLDIERS_DEPICTED as bool,
