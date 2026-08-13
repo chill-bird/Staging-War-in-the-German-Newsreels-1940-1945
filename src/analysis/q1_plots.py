@@ -11,6 +11,7 @@ import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+from matplotlib import font_manager
 from PIL import Image
 from tueplots import bundles
 
@@ -22,9 +23,12 @@ plt.rcParams.update(
     {
         "figure.dpi": 200,
         # "figure.figsize": (5.5324802778 / 1.5, 8.6938975 / 3*1.5),
-        "font.size": 10,  # base font size
+        "font.family": "Noto Sans Condensed",
+        "font.weight": 500,  # Medium weight globally
         "axes.titlesize": 14,  # title size
+        "axes.titleweight": 500,  # Medium weight for titles
         "axes.labelsize": 12,  # x and y label size
+        "axes.labelweight": 500,  # Medium weight for axis labels
         "xtick.labelsize": 10,  # x tick labels
         "ytick.labelsize": 10,  # y tick labels
         "legend.fontsize": 10,  # legend text
@@ -48,8 +52,8 @@ def plot_word_counts_per_episode(
     text = (
         f"Spearman ρ = {spearman_r:.2f} (p = {spearman_p:.3g})\n"
         f"Median: {median:.2f}\n"
-        f"Mean: {mean:.2f}\n"
-        f"Standard deviation: {std:.2f}"
+        f"Standard deviation: {std:.2f}\n"
+        f"n = {len(df_sorted)}"
     )
 
     fig, ax = plt.subplots(figsize=(4, 4))
@@ -100,7 +104,7 @@ def plot_word_counts_per_episode(
     plt.ylim(0, 160)
     plt.xlabel("Episodes")
     plt.ylabel("Word Count per minute")
-    plt.title(f"{plot_title} (n={len(df_sorted)})")
+    plt.title(f"{plot_title}")
     # sns.move_legend(
     #     ax,
     #     "lower center",
@@ -118,15 +122,16 @@ def plot_shot_duration_per_episode(
 ):
     """Creates plot for shot duration per episode"""
 
-    plot_title = "Shot Lengths in DWS chapters"
+    plot_title = "Avg. Shot Lengths in DWS chapters"
 
     df_sorted = df.sort_values(["episode", "chapter"]).reset_index(drop=True)
 
     text = (
         f"Spearman ρ = {spearman_r:.2f} (p = {spearman_p:.3g})\n"
         f"Median: {median:.2f}\n"
-        f"Mean: {mean:.2f}\n"
-        f"Standard deviation: {std:.2f}"
+        # f"Mean: {mean:.2f}\n"
+        f"Standard deviation: {std:.2f}\n"
+        f"n = {len(df_sorted)}"
     )
 
     fig, ax = plt.subplots(figsize=(4, 4))
@@ -177,7 +182,7 @@ def plot_shot_duration_per_episode(
     plt.ylim(0, 17)
     plt.xlabel("Episodes")
     plt.ylabel("Average Shot Length in sec")
-    plt.title(f"{plot_title} (n={len(df_sorted)})")
+    plt.title(f"{plot_title}")
     # sns.move_legend(
     #     ax,
     #     "lower center",
@@ -219,7 +224,8 @@ def plot_shot_scale_per_episode(
     text = (
         f"Spearman ρ = {spearman_r:.2f} (p = {spearman_p:.3g})\n"
         f"Mean: {mean:.2f}\n"
-        f"Standard deviation: {std:.2f}"
+        f"Standard deviation: {std:.2f}\n"
+        f"n = {len(df_episode)}"
     )
 
     # Stackplot
@@ -274,7 +280,7 @@ def plot_shot_scale_per_episode(
     )
     ax.set_xlabel("Episode")
     ax.set_ylabel("Shares of Shot Scales")
-    ax.set_title(f"{plot_title} (n={len(df_episode)})")
+    ax.set_title(f"{plot_title}")
     ax.set_ylim(0, 1)
     ax.set_xlim(df["episode"].min(), df["episode"].max())
 

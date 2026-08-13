@@ -6,7 +6,7 @@
 .env.cluster
 project.code-workspace
 src/analysis/notebooks
-src/analysis/Noto_Serif
+src/analysis/Noto_**
 src/transcribe/convert_mp4_to_mp3.sh
 references.bib
 

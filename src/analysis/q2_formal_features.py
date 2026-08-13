@@ -7,17 +7,19 @@ Analyze per-chapter formal feature averages of
 """
 
 from pathlib import Path
+
 import pandas as pd
 
-
+from src.analysis.q1_formal_features import ColumnStats
+from src.analysis.q2_plots import (
+    plot_depiction_ratio_per_episode,
+    plot_top_to_bottom_similarities,
+)
 from src.util import (
-    KEYFRAME_CLASSIFICATION_TSV,
     DOC_DIR,
+    KEYFRAME_CLASSIFICATION_TSV,
     get_filtered_chapters_df,
 )
-from src.analysis.q1_formal_features import ColumnStats
-from src.analysis.q2_plots import plot_depiction_ratio_per_episode, plot_top_to_bottom_similarities
-
 
 # -----------------------------------------------------------------
 # Constants
@@ -30,7 +32,7 @@ DF = get_filtered_chapters_df("soldiers")
 KEYFRAMES_DF = pd.read_csv(KEYFRAME_CLASSIFICATION_TSV, sep="\t")
 KEYFRAMES_DF["frame"] = KEYFRAMES_DF["frame"].astype(int)
 
-SIMILARITY_THRESHOLD = 0.18
+SIMILARITY_THRESHOLD_SOLDIERS = 0.17
 
 # -----------------------------------------------------------------
 # Helpers
@@ -49,7 +51,7 @@ def get_soldier_key_frames(row: pd.Series) -> pd.DataFrame | None:
         & (KEYFRAMES_DF["chapter"] == chapter)
         & (KEYFRAMES_DF["frame"] >= start_frame)
         & (KEYFRAMES_DF["frame"] <= end_frame)
-        & (KEYFRAMES_DF["shot_scale_sim_score"] >= SIMILARITY_THRESHOLD)
+        & (KEYFRAMES_DF["shot_scale_sim_score"] >= SIMILARITY_THRESHOLD_SOLDIERS)
         & (
             (KEYFRAMES_DF["content_class"] == "individual")
             | (KEYFRAMES_DF["content_class"] == "multiples")
@@ -141,7 +143,7 @@ def main():
     plt1.savefig(FIG_SOLDIER_DEPICTIONS_FILE)
 
     plt2 = plot_top_to_bottom_similarities(
-        KEYFRAMES_DF[KEYFRAMES_DF["content_sim_score"] >= SIMILARITY_THRESHOLD]
+        KEYFRAMES_DF[KEYFRAMES_DF["content_sim_score"] >= SIMILARITY_THRESHOLD_SOLDIERS]
     )
     plt2.savefig(FIG_TOP_TO_BOTTOM_CLASSES)
 

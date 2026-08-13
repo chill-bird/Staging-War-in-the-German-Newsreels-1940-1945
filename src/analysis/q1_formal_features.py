@@ -92,7 +92,6 @@ def get_duration_sec(row: pd.Series) -> float | None:
     if pd.notna(start_ms) and pd.notna(end_ms):
         duration_sec = (float(end_ms) - float(start_ms)) / 1000
         if duration_sec <=0:
-            print(row)
             return None
         return duration_sec
     else:

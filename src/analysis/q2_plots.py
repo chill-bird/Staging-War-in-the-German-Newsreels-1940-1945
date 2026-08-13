@@ -21,9 +21,12 @@ plt.rcParams.update(
     {
         "figure.dpi": 200,
         # "figure.figsize": (5.5324802778 / 1.5, 8.6938975 / 3*1.5),
-        "font.size": 10,  # base font size
+        "font.family": "Noto Sans Condensed",
+        "font.weight": 500,  # Medium weight globally
         "axes.titlesize": 14,  # title size
+        "axes.titleweight": 500,  # Medium weight for titles
         "axes.labelsize": 12,  # x and y label size
+        "axes.labelweight": 500,  # Medium weight for axis labels
         "xtick.labelsize": 10,  # x tick labels
         "ytick.labelsize": 10,  # y tick labels
         "legend.fontsize": 10,  # legend text
@@ -70,7 +73,8 @@ def plot_depiction_ratio_per_episode(
     text = (
         f"Spearman ρ = {spearman_r:.2f} (p = {spearman_p:.3g})\n"
         f"Mean: {mean:.2f}\n"
-        f"Standard deviation: {std:.2f}"
+        f"Standard deviation: {std:.2f}\n"
+        f"n = {len(df_episode)}"
     )
 
     # Stackplot
@@ -134,7 +138,7 @@ def plot_depiction_ratio_per_episode(
     )
     ax.set_xlabel("Episode")
     ax.set_ylabel("Shares of Soldier Depictions")
-    ax.set_title(f"{description} (n={len(df_episode)})")
+    ax.set_title(f"{description}")
     ax.set_ylim(0, 1)
     ax.set_xlim(df["episode"].min(), df["episode"].max())
 
