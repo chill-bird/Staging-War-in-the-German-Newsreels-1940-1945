@@ -4,27 +4,12 @@
 **.out
 **.err
 .env.cluster
-notes_cluster.md
 project.code-workspace
-references.bib
-dat/**.wav
-dat/**.mp3
-dat/keyframes
-dat/tmp
-dat/chapters_flagged
-dat/clean_video_data.ipynb
-dat/narratives
-dat/scenes
-dat/clip_features
-dat/shot_detection
-doc/meeting_minutes
-doc/report
-slurm_scripts/logs
-literature_downloads/
 src/analysis/notebooks
-src/crawler/
+src/analysis/Noto_Serif
 src/transcribe/convert_mp4_to_mp3.sh
-src/tmp.ipynb
+references.bib
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

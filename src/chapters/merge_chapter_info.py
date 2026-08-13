@@ -5,18 +5,20 @@ match_chapter_info.py
 Merge information for chapters to one dataframe.
 """
 
-import pandas as pd
-from pathlib import Path
-from dotenv import load_dotenv
 import os
+from pathlib import Path
+
+import pandas as pd
+from dotenv import load_dotenv
+
 from src.util import (
     get_chapter_mapping_df,
     get_chapters_df,
-    get_transcription_df,
     get_content_flags_df,
     get_scenes_df,
-    mmss_to_ms,
+    get_transcription_df,
     millisecs_to_frames,
+    mmss_to_ms,
 )
 
 # Paths
@@ -60,9 +62,11 @@ COLUMNS_TO_KEEP = [
 def get_transcription_for_chapter(
     df: pd.DataFrame, start: float | int | None, end: float | int | None
 ) -> str:
+    """Returns transcription text for a chapter, excluding transcriptions from the next chapter."""
     if start is None or end is None or pd.isna(start) or pd.isna(end):
         return ""
-    mask = (df["start"] <= end) & (df["end"] >= start)
+    # Use strict less than for end to exclude transcriptions starting at the chapter boundary
+    mask = (df["start"] < end) & (df["end"] >= start)
     texts = (
         df.loc[mask, "text"]
         .dropna()  # removes NaN / pd.NA

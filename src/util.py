@@ -49,7 +49,6 @@ def get_filtered_chapters_df(class_label: str) -> pd.DataFrame():
 
     # Only data with timestamps
     df = df[(df["start"].notna()) & (df["end"].notna())]
-    len(df)
 
     match class_label:
         case "combat":
@@ -200,6 +199,34 @@ def get_chapter_mapping_df(filestem: str | None) -> pd.DataFrame | None:
     if not chapters_mapping_csv.is_file():
         return None
     df_chapters = pd.read_csv(chapters_mapping_csv, sep=",")
+
+    # Adjust timestamps based on chapter position
+    n = len(df_chapters)
+    last_idx = n - 1
+
+    # Get video length from VIDEO_DATA_TSV
+    df_video = pd.read_csv(VIDEO_DATA_TSV, sep="\t")
+    video_row = df_video[df_video["filestem"] == filestem]
+    if video_row.empty:
+        raise ValueError(f"Could not find video data for filestem '{filestem}' in VIDEO_DATA_TSV.")
+    video_length_sec = int(video_row["length"].iloc[0])
+
+    for i in range(n):
+        current_row = df_chapters.iloc[i]
+        next_row = df_chapters.iloc[i + 1] if i < last_idx else None
+
+        if i == last_idx:
+            # Last chapter: subtract 4 seconds for credits screen
+            end_secs = video_length_sec - 4
+            df_chapters.at[current_row.name, "end_mm:ss"] = seconds_to_mmss(end_secs)
+        elif next_row is not None and pd.notna(next_row.get("start_mm:ss", None)):
+            # Has follow-up chapter: use next chapter's start timestamp
+            df_chapters.at[current_row.name, "end_mm:ss"] = next_row["start_mm:ss"]
+        else:
+            # No follow-up chapter: clear both timestamps
+            df_chapters.at[current_row.name, "start_mm:ss"] = ""
+            df_chapters.at[current_row.name, "end_mm:ss"] = ""
+
     return df_chapters
 
 

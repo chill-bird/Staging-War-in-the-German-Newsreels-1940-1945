@@ -24,7 +24,7 @@ CHAPTER_DATA = Path(os.getenv("CHAPTERS_DATA_TSV")).resolve()
 KEYFRAMES_DIR = Path(os.getenv("KEYFRAMES_DIR")).resolve()
 TRANSCRIPTIONS_DIR = Path(os.getenv("TRANSCRIPTIONS_DIR")).resolve()
 SHOT_SCALE_CLASSIFICATIONS_DIR = Path(os.getenv("SHOT_SCALE_CLASSIFICATIONS_DIR")).resolve()
-assert CHAPTER_DATA.is_file(), "Could not find TSV."
+assert CHAPTER_DATA.is_file(), "Could not find chapter TSV."
 assert KEYFRAMES_DIR.is_dir(), "Could not find directory for keyframes."
 
 SHOT_SCALE_CLASSIFICATIONS_DIR.mkdir(parents=False, exist_ok=True)

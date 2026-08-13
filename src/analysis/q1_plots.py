@@ -14,6 +14,7 @@ import seaborn as sns
 from PIL import Image
 from tueplots import bundles
 
+# from tueplots import figsizes
 from src.util import get_keyframe_path
 
 plt.rcParams.update(bundles.beamer_moml())
@@ -40,7 +41,7 @@ def plot_word_counts_per_episode(
 ):
     """Creates plot for word counts per episode"""
 
-    plot_title = "Rel. Word Counts in episode subjects"
+    plot_title = "Rel. Word Counts in DWS chapters"
 
     df_sorted = df.sort_values(["episode", "chapter"]).reset_index(drop=True)
 
@@ -117,7 +118,7 @@ def plot_shot_duration_per_episode(
 ):
     """Creates plot for shot duration per episode"""
 
-    plot_title = "Shot Lengths in DWS episode subjects"
+    plot_title = "Shot Lengths in DWS chapters"
 
     df_sorted = df.sort_values(["episode", "chapter"]).reset_index(drop=True)
 

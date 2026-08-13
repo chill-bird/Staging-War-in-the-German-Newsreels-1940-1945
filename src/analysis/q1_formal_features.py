@@ -8,20 +8,20 @@ Analyze per-chapter formal feature averages of
 """
 
 from pathlib import Path
+
 import pandas as pd
 from scipy.stats import pearsonr, spearmanr
 
-
-from src.util import (
-    KEYFRAME_CLASSIFICATION_TSV,
-    DOC_DIR,
-    get_filtered_chapters_df,
-)
 from src.analysis.q1_plots import (
-    plot_word_counts_per_episode,
     plot_shot_duration_per_episode,
     plot_shot_scale_per_episode,
     plot_top_to_bottom_similarities,
+    plot_word_counts_per_episode,
+)
+from src.util import (
+    DOC_DIR,
+    KEYFRAME_CLASSIFICATION_TSV,
+    get_filtered_chapters_df,
 )
 
 # -----------------------------------------------------------------
@@ -70,7 +70,7 @@ DF = get_filtered_chapters_df("combat")
 KEYFRAMES_DF = pd.read_csv(KEYFRAME_CLASSIFICATION_TSV, sep="\t")
 KEYFRAMES_DF["frame"] = KEYFRAMES_DF["frame"].astype(int)
 
-SIMILARITY_THRESHOLD = 0.18
+SIMILARITY_THRESHOLD_SHOT_SCALE = 0.165
 
 # -----------------------------------------------------------------
 # Helpers - Word Count
@@ -79,6 +79,8 @@ SIMILARITY_THRESHOLD = 0.18
 
 def count_words(s: str):
     """Counts words separated by whitespace in a string."""
+    if s is None:
+        return None
     return len(s.split())
 
 
@@ -89,6 +91,9 @@ def get_duration_sec(row: pd.Series) -> float | None:
 
     if pd.notna(start_ms) and pd.notna(end_ms):
         duration_sec = (float(end_ms) - float(start_ms)) / 1000
+        if duration_sec <=0:
+            print(row)
+            return None
         return duration_sec
     else:
         return None
@@ -139,7 +144,7 @@ def get_key_frames(row: pd.Series) -> pd.DataFrame | None:
         & (KEYFRAMES_DF["chapter"] == chapter)
         & (KEYFRAMES_DF["frame"] >= start_frame)
         & (KEYFRAMES_DF["frame"] <= end_frame)
-        & (KEYFRAMES_DF["shot_scale_sim_score"] >= SIMILARITY_THRESHOLD)
+        & (KEYFRAMES_DF["shot_scale_sim_score"] >= SIMILARITY_THRESHOLD_SHOT_SCALE)
     ].copy()
 
     # print(f"Found {len(keyframes_df)} matching keyframes")
@@ -180,7 +185,7 @@ def main():
 
     ### Word counts ###
 
-    df["word_count"] = df["audio_transcription"].apply(count_words)
+    df["word_count"] = df[df["audio_transcription"].notna()]["audio_transcription"].apply(count_words)
     df["duration_sec"] = df.apply(lambda row: get_duration_sec(row), axis=1)
     df["word_count_per_minute"] = df.apply(lambda row: words_per_minute(row), axis=1)
 
@@ -242,7 +247,7 @@ def main():
     plt3.savefig(FIG_SHOT_SCALE_FILE)
 
     plt4 = plot_top_to_bottom_similarities(
-        KEYFRAMES_DF[KEYFRAMES_DF["shot_scale_sim_score"] >= SIMILARITY_THRESHOLD]
+        KEYFRAMES_DF[KEYFRAMES_DF["shot_scale_sim_score"] >= SIMILARITY_THRESHOLD_SHOT_SCALE]
     )
     plt4.savefig(FIG_TOP_TO_BOTTOM_CLASSES)
 

@@ -1,5 +1,4 @@
 accelerate
-beautifulsoup4
 faster-whisper
 imageio
 imageio-ffmpeg
@@ -11,7 +10,6 @@ openai-whisper
 opencv-python
 pandas
 pillow
-playwright
 python-dotenv
 scikit-learn
 ruptures
