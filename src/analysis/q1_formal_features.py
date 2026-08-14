@@ -91,7 +91,7 @@ def get_duration_sec(row: pd.Series) -> float | None:
 
     if pd.notna(start_ms) and pd.notna(end_ms):
         duration_sec = (float(end_ms) - float(start_ms)) / 1000
-        if duration_sec <=0:
+        if duration_sec <= 0:
             return None
         return duration_sec
     else:
@@ -184,8 +184,10 @@ def main():
 
     ### Word counts ###
 
-    df["word_count"] = df[df["audio_transcription"].notna()]["audio_transcription"].apply(count_words)
     df["duration_sec"] = df.apply(lambda row: get_duration_sec(row), axis=1)
+    df["word_count"] = df[df["audio_transcription"].notna()]["audio_transcription"].apply(
+        count_words
+    )
     df["word_count_per_minute"] = df.apply(lambda row: words_per_minute(row), axis=1)
 
     word_count_stats_episode = ColumnStats(
@@ -205,6 +207,8 @@ def main():
 
     ### Shot duration ###
 
+    df = DF.copy()
+    df["duration_sec"] = df.apply(lambda row: get_duration_sec(row), axis=1)
     df["avg_shot_duration"] = df.apply(lambda row: avg_shot_duration_sec(row), axis=1)
 
     shot_duration_stats_episode = ColumnStats(
@@ -230,6 +234,10 @@ def main():
     df["ratio_diff"] = df.apply(
         lambda row: row["ratio_close_shots"] - row["ratio_long_shots"], axis=1
     )
+    shot_scale_ls_stats_episode = ColumnStats(df, "episode", "ratio_long_shots", "Long shots")
+    shot_scale_ls_stats_episode.print_stats()
+    shot_scale_cs_stats_episode = ColumnStats(df, "episode", "ratio_close_shots", "Close shots")
+    shot_scale_cs_stats_episode.print_stats()
     shot_scale_diff_stats_episode = ColumnStats(
         df, "episode", "ratio_diff", "Difference between long and close shots"
     )

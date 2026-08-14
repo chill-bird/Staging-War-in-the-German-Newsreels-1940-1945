@@ -30,6 +30,7 @@ plt.rcParams.update(
         "xtick.labelsize": 10,  # x tick labels
         "ytick.labelsize": 10,  # y tick labels
         "legend.fontsize": 10,  # legend text
+        "legend.labelspacing": 0,  # legend spacing
     }
 )
 # Color palette
@@ -58,6 +59,9 @@ def plot_depiction_ratio_per_episode(
         .sort_values("episode")
     )
 
+    df_episode_plot = df_episode.copy()
+
+
     # Smooth with rolling mean
     window = 5
     for col in [
@@ -65,24 +69,24 @@ def plot_depiction_ratio_per_episode(
         "ratio_group_depictions",
         "ratio_collective_depictions",
     ]:
-        df_episode[col] = df_episode[col].rolling(window=window, center=True, min_periods=1).mean()
+        df_episode_plot[col] = df_episode_plot[col].rolling(window=window, center=True, min_periods=1).mean()
 
     # Figure and axes
     fig, ax = plt.subplots(figsize=(6, 4))
 
-    text = (
-        f"Spearman ρ = {spearman_r:.2f} (p = {spearman_p:.3g})\n"
-        f"Mean: {mean:.2f}\n"
-        f"Standard deviation: {std:.2f}\n"
-        f"n = {len(df_episode)}"
-    )
+    # text = (
+    #     f"Spearman ρ = {spearman_r:.2f} (p = {spearman_p:.3g})\n"
+    #     f"Mean: {mean:.2f}\n"
+    #     f"Standard deviation: {std:.2f}\n"
+    #     f"n = {len(df)}"
+    # )
 
     # Stackplot
     ax.stackplot(
-        df_episode["episode"],
-        df_episode["ratio_individual_depictions"],
-        df_episode["ratio_group_depictions"],
-        df_episode["ratio_collective_depictions"],
+        df_episode_plot["episode"],
+        df_episode_plot["ratio_individual_depictions"],
+        df_episode_plot["ratio_group_depictions"],
+        df_episode_plot["ratio_collective_depictions"],
         labels=["Individual", "Multiple", "Collective"],
         colors=["#d7191c", "white", "#2b83ba"],
         alpha=0.6,
@@ -90,7 +94,7 @@ def plot_depiction_ratio_per_episode(
 
     # Regression lines
     sns.regplot(
-        data=df,
+        data=df_episode,
         x="episode",
         y="ratio_individual_depictions",
         scatter=False,
@@ -99,7 +103,7 @@ def plot_depiction_ratio_per_episode(
         ax=ax,
     )
     sns.regplot(
-        data=df,
+        data=df_episode,
         x="episode",
         y="ratio_group_depictions",
         scatter=False,
@@ -108,7 +112,7 @@ def plot_depiction_ratio_per_episode(
         ax=ax,
     )
     sns.regplot(
-        data=df,
+        data=df_episode,
         x="episode",
         y="ratio_collective_depictions",
         scatter=False,
@@ -128,14 +132,14 @@ def plot_depiction_ratio_per_episode(
     secax.set_xticklabels(year_positions.index)  # show year labels
     secax.set_xlabel("Year")
 
-    ax.text(
-        0.05,
-        0.95,
-        text,
-        transform=plt.gca().transAxes,
-        verticalalignment="top",
-        bbox=dict(boxstyle="round", color="lightgrey", alpha=0.4),
-    )
+    # ax.text(
+    #     0.05,
+    #     0.95,
+    #     text,
+    #     transform=plt.gca().transAxes,
+    #     verticalalignment="top",
+    #     bbox=dict(boxstyle="round", color="lightgrey", alpha=0.4),
+    # )
     ax.set_xlabel("Episode")
     ax.set_ylabel("Shares of Soldier Depictions")
     ax.set_title(f"{description}")

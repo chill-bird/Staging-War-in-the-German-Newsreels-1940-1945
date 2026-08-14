@@ -127,8 +127,23 @@ def main():
     df["ratio_diff"] = df.apply(
         lambda row: row["ratio_individual_depictions"] - row["ratio_collective_depictions"], axis=1
     )
+    depictions_ratio_individual_depictions = ColumnStats(
+        df, "episode", "ratio_individual_depictions", "Individual soldier depictions"
+    )
+    depictions_ratio_individual_depictions.print_stats()
+    depictions_ratio_group_depictions = ColumnStats(
+        df, "episode", "ratio_group_depictions", "Group soldier depictions"
+    )
+    depictions_ratio_group_depictions.print_stats()
+    depictions_ratio_collective_depictions = ColumnStats(
+        df, "episode", "ratio_collective_depictions", "Collective soldier depictions"
+    )
+    depictions_ratio_collective_depictions.print_stats()
     depictions_diff_stats_episode = ColumnStats(
-        df, "episode", "ratio_diff", "Difference between individual and collective soldier depictions"
+        df,
+        "episode",
+        "ratio_diff",
+        "Difference between individual and collective soldier depictions",
     )
     depictions_diff_stats_episode.print_stats()
 

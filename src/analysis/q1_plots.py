@@ -18,6 +18,15 @@ from tueplots import bundles
 # from tueplots import figsizes
 from src.util import get_keyframe_path
 
+# Register Noto Sans font
+NOTO_SANS_DIR = Path(__file__).parent / "Noto_Sans"
+for ttf_file in NOTO_SANS_DIR.glob("*.ttf"):
+    font_manager.fontManager.addfont(ttf_file)
+subdir = NOTO_SANS_DIR / "static"
+if subdir.is_dir():
+    for ttf_file in subdir.glob("*.ttf"):
+        font_manager.fontManager.addfont(ttf_file)
+
 plt.rcParams.update(bundles.beamer_moml())
 plt.rcParams.update(
     {
@@ -32,6 +41,7 @@ plt.rcParams.update(
         "xtick.labelsize": 10,  # x tick labels
         "ytick.labelsize": 10,  # y tick labels
         "legend.fontsize": 10,  # legend text
+        "legend.labelspacing": 0,  # legend spacing
     }
 )
 # Color palette
@@ -53,7 +63,7 @@ def plot_word_counts_per_episode(
         f"Spearman ρ = {spearman_r:.2f} (p = {spearman_p:.3g})\n"
         f"Median: {median:.2f}\n"
         f"Standard deviation: {std:.2f}\n"
-        f"n = {len(df_sorted)}"
+        f"n = {len(df_sorted[df_sorted["word_count_per_minute"].notna()])}"
     )
 
     fig, ax = plt.subplots(figsize=(4, 4))
@@ -131,7 +141,7 @@ def plot_shot_duration_per_episode(
         f"Median: {median:.2f}\n"
         # f"Mean: {mean:.2f}\n"
         f"Standard deviation: {std:.2f}\n"
-        f"n = {len(df_sorted)}"
+        f"n = {len(df_sorted[df_sorted["avg_shot_duration"].notna()])}"
     )
 
     fig, ax = plt.subplots(figsize=(4, 4))
@@ -212,49 +222,61 @@ def plot_shot_scale_per_episode(
     df_episode["ratio_middle"] = (
         1 - df_episode["ratio_close_shots"] - df_episode["ratio_long_shots"]
     )
+    df_episode_plot = df_episode.copy()
 
     # Smooth with rolling mean
     window = 5
     for col in ["ratio_close_shots", "ratio_long_shots", "ratio_middle"]:
-        df_episode[col] = df_episode[col].rolling(window=window, center=True, min_periods=1).mean()
+        df_episode_plot[col] = (
+            df_episode_plot[col].rolling(window=window, center=True, min_periods=1).mean()
+        )
 
     # Figure and axes
     fig, ax = plt.subplots(figsize=(6, 4))
 
-    text = (
-        f"Spearman ρ = {spearman_r:.2f} (p = {spearman_p:.3g})\n"
-        f"Mean: {mean:.2f}\n"
-        f"Standard deviation: {std:.2f}\n"
-        f"n = {len(df_episode)}"
-    )
+    # text = (
+    #     f"Spearman ρ = {spearman_r:.2f} (p = {spearman_p:.3g})\n"
+    #     f"Mean: {mean:.2f}\n"
+    #     f"Standard deviation: {std:.2f}\n"
+    #     f"n = {len(df_episode)}"
+    # )
 
     # Stackplot
     ax.stackplot(
-        df_episode["episode"],
-        df_episode["ratio_close_shots"],
-        df_episode["ratio_middle"],
-        df_episode["ratio_long_shots"],
-        labels=["Close Shot", "Medium Shot", "Long Shot"],
+        df_episode_plot["episode"],
+        df_episode_plot["ratio_close_shots"],
+        df_episode_plot["ratio_middle"],
+        df_episode_plot["ratio_long_shots"],
+        labels=["Close-up", "Medium Shot", "Long Shot"],
         colors=["#d7191c", "white", "#2b83ba"],
         alpha=0.6,
     )
 
     # Regression lines
     sns.regplot(
-        data=df,
+        data=df_episode,
         x="episode",
         y="ratio_close_shots",
         scatter=False,
-        label="Close Shot trend",
+        label="Close-up trend",
         color="#d7191c",
         ax=ax,
     )
     sns.regplot(
-        data=df,
+        data=df_episode,
+        x="episode",
+        y="ratio_middle",
+        scatter=False,
+        label="Medium Shot trend",
+        color="lightgrey",
+        ax=ax,
+    )
+    sns.regplot(
+        data=df_episode,
         x="episode",
         y="ratio_long_shots",
         scatter=False,
-        label="Long Shot Trend",
+        label="Long Shot trend",
         color="#2b83ba",
         ax=ax,
     )
@@ -270,14 +292,14 @@ def plot_shot_scale_per_episode(
     secax.set_xticklabels(year_positions.index)  # show year labels
     secax.set_xlabel("Year")
 
-    ax.text(
-        0.05,
-        0.95,
-        text,
-        transform=plt.gca().transAxes,
-        verticalalignment="top",
-        bbox=dict(boxstyle="round", color="lightgrey", alpha=0.4),
-    )
+    # ax.text(
+    #     0.05,
+    #     0.95,
+    #     text,
+    #     transform=plt.gca().transAxes,
+    #     verticalalignment="top",
+    #     bbox=dict(boxstyle="round", color="lightgrey", alpha=0.4),
+    # )
     ax.set_xlabel("Episode")
     ax.set_ylabel("Shares of Shot Scales")
     ax.set_title(f"{plot_title}")
