@@ -85,7 +85,7 @@ Due to repository size limits, raw data were deleted from repository and, instea
 ### Analyze formal features in combat scenes
 
 ```sh
-python -m src.analysis.q1_formal_features
+python -m src.analysis.lmm_analysis
 ```
 
 ### Q2: Analyze soldier representations

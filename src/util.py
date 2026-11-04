@@ -18,7 +18,8 @@ VIDEO_DATA_TSV = Path(os.getenv("VIDEO_DATA_TSV")).resolve()
 CHAPTERS_DATA_TSV = Path(os.getenv("CHAPTERS_DATA_TSV")).resolve()
 KEYFRAME_CLASSIFICATION_TSV = Path(os.getenv("KEYFRAME_CLASSIFICATION_TSV")).resolve()
 DOC_DIR = Path(Path(__file__).parent.parent.resolve() / "doc").resolve()
-NARRATIVES_DATA_TSV  = Path(os.getenv("NARRATIVES_DATA_TSV")).resolve()
+NARRATIVES_DATA_TSV = Path(os.getenv("NARRATIVES_DATA_TSV")).resolve()
+SCENES_DIR = Path(os.getenv("SCENES_DIR")).resolve()
 
 assert VIDEO_DATA_TSV.is_file(), "Could not find video data TSV."
 assert CHAPTERS_DATA_TSV.is_file(), "Could not find chapters data TSV."
@@ -30,6 +31,41 @@ CHAPTER_BLACKLIST = [
         "chapter": "5",
     },
 ]
+
+
+def get_chapter_cuts(row: pd.Series) -> pd.DataFrame | None:
+    """Returns shot boundaries within one chapter."""
+    start = row.get("start_frame")
+    end = row.get("end_frame")
+
+    if start is None or end is None or pd.isna(start) or pd.isna(end):
+        return None
+
+    scenes_df = get_scenes_df(row["filestem"])
+    if scenes_df is None:
+        return None
+
+    # Find scenes that overlap with the chapter boundaries
+    mask = (scenes_df["start_frame"] <= end) & (scenes_df["end_frame"] >= start)
+
+    return scenes_df[mask].copy()
+
+
+def get_chapter_shot_durations_in_sec(row: pd.Series) -> list[float]:
+    """Returns a list of shot durations or empty list for a chapter"""
+    cuts_df = get_chapter_cuts(row)
+
+    if cuts_df is None or cuts_df.empty:
+        return []
+
+    df_video = pd.read_csv(VIDEO_DATA_TSV, sep="\t")
+    fps = df_video[df_video["filestem"] == row["filestem"]]["fps"].values[0]
+    cuts_df["duration_ms"] = cuts_df.apply(
+        lambda r: frames_to_millisecs(r["end_frame"] - r["start_frame"], fps) / 1000, axis=1
+    )
+
+    return cuts_df["duration_ms"].tolist()
+
 
 def get_filtered_chapters_df(class_label: str) -> pd.DataFrame():
     """Returns chapter dataframe filtered for chapters classified with class_label."""
@@ -64,6 +100,7 @@ def get_filtered_chapters_df(class_label: str) -> pd.DataFrame():
 
     return df
 
+
 def get_cleaned_narratives_df() -> pd.DataFrame():
     # Load chapters
     tsv_file = Path(NARRATIVES_DATA_TSV).resolve()
@@ -87,12 +124,10 @@ def get_cleaned_narratives_df() -> pd.DataFrame():
         "legitimation_strategy",
         "enemy_moral_status",
         "actor_configuration",
-        "violence_visibility"
+        "violence_visibility",
     ]
 
-    single_label_cols = [
-        "agency_level"
-    ]
+    single_label_cols = ["agency_level"]
 
     # clean faulty values
     df["violence_visibility"] = (
@@ -114,13 +149,13 @@ def get_cleaned_narratives_df() -> pd.DataFrame():
     for col in multi_label_cols:
         # Convert semicolon-separated strings to lists
         df[col] = df[col].str.split(";")
-        
+
         # Remove whitespace and lowercase everything
         df[col] = df[col].apply(lambda lst: [x.strip().lower() for x in lst if x])
-        
+
         # Sort the labels so that order does not matter
         df[col] = df[col].apply(lambda lst: sorted(lst))
-        
+
         # Convert back to string for get_dummies
         df[col] = df[col].apply(lambda lst: ";".join(lst))
 
@@ -135,6 +170,7 @@ def get_cleaned_narratives_df() -> pd.DataFrame():
         df = pd.concat([df, dummies], axis=1)
 
     return df
+
 
 def frames_to_timestamp(frame_no: int, fps: int | float) -> str:
     """Convert a frame number to mm:ss timestamp format in movie"""
