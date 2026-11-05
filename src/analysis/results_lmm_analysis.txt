@@ -1,0 +1,429 @@
+=================================================
+ANALYSIS: WORD COUNT PER MINUTE
+=================================================
+
+--- Running LMM Configurations ---
+
+--- Searching for Optimal Breakpoints ---
+Best one-knot LMM: episode 714, AIC = 7059.99
+
+=================================================================
+MODEL STATISTICS: Null Model
+=================================================================
+               Mixed Linear Model Regression Results
+===================================================================
+Model:            MixedLM Dependent Variable: word_count_per_minute
+No. Observations: 821     Method:             ML                   
+No. Groups:       216     Scale:              283.0924             
+Min. group size:  1       Log-Likelihood:     -3575.4415           
+Max. group size:  16      Converged:          Yes                  
+Mean group size:  3.8                                              
+---------------------------------------------------------------------
+                 Coef.    Std.Err.     z      P>|z|   [0.025   0.975]
+---------------------------------------------------------------------
+Intercept        44.814      0.960   46.698   0.000   42.933   46.695
+episode Var     110.532      1.235                                   
+===================================================================
+
+-----------------------------------------------------------------
+Primary Intraclass Correlation Coefficients (ICC):
+Episode ICC: 0.2808
+Chapter ICC: 0.0000
+Log-Likelihood: -3575.442
+AIC: 7156.883
+BIC: 7171.015
+
+=================================================================
+MODEL STATISTICS: Linear (No Knots)
+=================================================================
+               Mixed Linear Model Regression Results
+===================================================================
+Model:            MixedLM Dependent Variable: word_count_per_minute
+No. Observations: 821     Method:             ML                   
+No. Groups:       216     Scale:              282.6902             
+Min. group size:  1       Log-Likelihood:     -3550.0537           
+Max. group size:  16      Converged:          Yes                  
+Mean group size:  3.8                                              
+--------------------------------------------------------------------
+                     Coef.   Std.Err.    z     P>|z|  [0.025  0.975]
+--------------------------------------------------------------------
+Intercept            33.375     1.743  19.152  0.000  29.959  36.790
+episode_shifted       0.092     0.012   7.604  0.000   0.068   0.116
+episode Var          70.030     0.938                               
+===================================================================
+
+-----------------------------------------------------------------
+Primary Intraclass Correlation Coefficients (ICC):
+Episode ICC: 0.1985
+Chapter ICC: 0.0000
+Log-Likelihood: -3550.054
+AIC: 7108.107
+BIC: 7126.950
+
+=================================================================
+MODEL STATISTICS: Quadratic
+=================================================================
+               Mixed Linear Model Regression Results
+===================================================================
+Model:            MixedLM Dependent Variable: word_count_per_minute
+No. Observations: 821     Method:             ML                   
+No. Groups:       216     Scale:              284.8233             
+Min. group size:  1       Log-Likelihood:     -3537.7669           
+Max. group size:  16      Converged:          Yes                  
+Mean group size:  3.8                                              
+-------------------------------------------------------------------
+                         Coef.  Std.Err.   z    P>|z| [0.025 0.975]
+-------------------------------------------------------------------
+Intercept                44.047    2.615 16.846 0.000 38.922 49.171
+episode_shifted          -0.145    0.047 -3.077 0.002 -0.238 -0.053
+I(episode_shifted ** 2)   0.001    0.000  5.185 0.000  0.001  0.001
+episode Var              49.969    0.816                           
+===================================================================
+
+-----------------------------------------------------------------
+Primary Intraclass Correlation Coefficients (ICC):
+Episode ICC: 0.1493
+Chapter ICC: 0.0000
+Log-Likelihood: -3537.767
+AIC: 7085.534
+BIC: 7109.086
+
+=================================================================
+MODEL STATISTICS: One Knot (Manual - Barbarossa)
+=================================================================
+               Mixed Linear Model Regression Results
+===================================================================
+Model:            MixedLM Dependent Variable: word_count_per_minute
+No. Observations: 821     Method:             ML                   
+No. Groups:       216     Scale:              283.2694             
+Min. group size:  1       Log-Likelihood:     -3547.8091           
+Max. group size:  16      Converged:          Yes                  
+Mean group size:  3.8                                              
+--------------------------------------------------------------------
+                     Coef.   Std.Err.    z     P>|z|  [0.025  0.975]
+--------------------------------------------------------------------
+Intercept            40.309     3.668  10.988  0.000  33.119  47.499
+episode_shifted      -0.079     0.081  -0.974  0.330  -0.237   0.080
+spline_1              0.189     0.088   2.138  0.032   0.016   0.362
+episode Var          65.806     0.915                               
+===================================================================
+
+-----------------------------------------------------------------
+Primary Intraclass Correlation Coefficients (ICC):
+Episode ICC: 0.1885
+Chapter ICC: 0.0000
+Log-Likelihood: -3547.809
+AIC: 7105.618
+BIC: 7129.171
+
+=================================================================
+MODEL STATISTICS: One Knot (Manual - Stalingrad)
+=================================================================
+               Mixed Linear Model Regression Results
+===================================================================
+Model:            MixedLM Dependent Variable: word_count_per_minute
+No. Observations: 821     Method:             ML                   
+No. Groups:       216     Scale:              284.5007             
+Min. group size:  1       Log-Likelihood:     -3539.7431           
+Max. group size:  16      Converged:          Yes                  
+Mean group size:  3.8                                              
+--------------------------------------------------------------------
+                     Coef.   Std.Err.    z     P>|z|  [0.025  0.975]
+--------------------------------------------------------------------
+Intercept            40.138     2.173  18.476  0.000  35.880  44.397
+episode_shifted      -0.005     0.024  -0.198  0.843  -0.051   0.041
+spline_1              0.219     0.047   4.714  0.000   0.128   0.311
+episode Var          52.968     0.836                               
+===================================================================
+
+-----------------------------------------------------------------
+Primary Intraclass Correlation Coefficients (ICC):
+Episode ICC: 0.1570
+Chapter ICC: 0.0000
+Log-Likelihood: -3539.743
+AIC: 7089.486
+BIC: 7113.039
+
+=================================================================
+MODEL STATISTICS: One Knot (Automated Best)
+=================================================================
+               Mixed Linear Model Regression Results
+===================================================================
+Model:            MixedLM Dependent Variable: word_count_per_minute
+No. Observations: 821     Method:             ML                   
+No. Groups:       216     Scale:              283.2700             
+Min. group size:  1       Log-Likelihood:     -3524.9957           
+Max. group size:  16      Converged:          Yes                  
+Mean group size:  3.8                                              
+--------------------------------------------------------------------
+                     Coef.   Std.Err.    z     P>|z|  [0.025  0.975]
+--------------------------------------------------------------------
+Intercept            38.854     1.683  23.088  0.000  35.556  42.153
+episode_shifted       0.026     0.014   1.875  0.061  -0.001   0.053
+spline_1              0.713     0.094   7.619  0.000   0.530   0.897
+episode Var          37.416     0.706                               
+===================================================================
+
+-----------------------------------------------------------------
+Primary Intraclass Correlation Coefficients (ICC):
+Episode ICC: 0.1167
+Chapter ICC: 0.0000
+Log-Likelihood: -3524.996
+AIC: 7059.991
+BIC: 7083.544
+Found Optimal Knot: 714
+
+MODEL COMPARISON (Ranked by AIC)
+-----------------------------------------------------------------
+                    Model Name  Log-likelihood      AIC      BIC  delta_aic  delta_bic
+     One Knot (Automated Best)       -3524.996 7059.991 7083.544      0.000      0.000
+                     Quadratic       -3537.767 7085.534 7109.086     25.542     25.542
+One Knot (Manual - Stalingrad)       -3539.743 7089.486 7113.039     29.495     29.495
+One Knot (Manual - Barbarossa)       -3547.809 7105.618 7129.171     45.627     45.627
+             Linear (No Knots)       -3550.054 7108.107 7126.950     48.116     43.406
+                    Null Model       -3575.442 7156.883 7171.015     96.892     87.471
+
+Best model based on AIC: One Knot (Automated Best)
+
+RESIDUAL DIAGNOSTICS: WPM: One Knot (Automated Best)
+------------------------------------------------------------
+Residual mean: -3.191816820320645e-14
+Residual standard deviation: 16.121092794819926
+Number of observations: 821
+Number of episodes: 216
+
+Ljung-Box test:
+     lb_stat  lb_pvalue
+10  8.991429   0.532917
+
+Random-effects covariance:
+           episode
+episode  37.415516
+
+Variance components:
+[]
+
+Residual variance:
+283.27001947005476
+
+Likelihood-ratio test (linear vs. Stalingrad knot):
+{'LR statistic': np.float64(20.62121578746519), 'Degrees of freedom': 1, 'p-value': np.float64(5.597239461911242e-06)}
+
+
+
+=================================================
+ANALYSIS: SHOT DURATIONS
+=================================================
+
+--- Running LMM Configurations ---
+
+--- Searching for Optimal Breakpoints ---
+Best one-knot LMM: episode 716, AIC = 76843.98
+
+=================================================================
+MODEL STATISTICS: Null Model
+=================================================================
+          Mixed Linear Model Regression Results
+==========================================================
+Model:            MixedLM Dependent Variable: log_duration
+No. Observations: 39176   Method:             ML          
+No. Groups:       216     Scale:              0.4030      
+Min. group size:  18      Log-Likelihood:     -38499.1825 
+Max. group size:  407     Converged:          Yes         
+Mean group size:  181.4                                   
+----------------------------------------------------------
+                 Coef. Std.Err.   z    P>|z| [0.025 0.975]
+----------------------------------------------------------
+Intercept        1.194    0.016 76.090 0.000  1.163  1.225
+episode Var      0.040    0.008                           
+chapter_uid Var  0.028    0.004                           
+==========================================================
+
+-----------------------------------------------------------------
+Primary Intraclass Correlation Coefficients (ICC):
+Episode ICC: 0.0856
+Chapter ICC: 0.0599
+Log-Likelihood: -38499.182
+AIC: 77006.365
+BIC: 77040.668
+
+=================================================================
+MODEL STATISTICS: Linear (No Knots)
+=================================================================
+           Mixed Linear Model Regression Results
+===========================================================
+Model:             MixedLM Dependent Variable: log_duration
+No. Observations:  39176   Method:             ML          
+No. Groups:        216     Scale:              0.4030      
+Min. group size:   18      Log-Likelihood:     -38418.3989 
+Max. group size:   407     Converged:          Yes         
+Mean group size:   181.4                                   
+-----------------------------------------------------------
+                Coef.  Std.Err.    z    P>|z| [0.025 0.975]
+-----------------------------------------------------------
+Intercept        1.495    0.022  67.042 0.000  1.451  1.538
+episode_shifted -0.002    0.000 -15.438 0.000 -0.003 -0.002
+episode Var      0.013    0.004                            
+chapter_uid Var  0.028    0.004                            
+===========================================================
+
+-----------------------------------------------------------------
+Primary Intraclass Correlation Coefficients (ICC):
+Episode ICC: 0.0295
+Chapter ICC: 0.0622
+Log-Likelihood: -38418.399
+AIC: 76846.798
+BIC: 76889.677
+
+=================================================================
+MODEL STATISTICS: Quadratic
+=================================================================
+              Mixed Linear Model Regression Results
+==================================================================
+Model:                MixedLM   Dependent Variable:   log_duration
+No. Observations:     39176     Method:               ML          
+No. Groups:           216       Scale:                0.4030      
+Min. group size:      18        Log-Likelihood:       -38418.3480 
+Max. group size:      407       Converged:            Yes         
+Mean group size:      181.4                                       
+------------------------------------------------------------------
+                        Coef.  Std.Err.   z    P>|z| [0.025 0.975]
+------------------------------------------------------------------
+Intercept                1.486    0.035 42.068 0.000  1.417  1.555
+episode_shifted         -0.002    0.001 -3.414 0.001 -0.003 -0.001
+I(episode_shifted ** 2) -0.000    0.000 -0.319 0.750 -0.000  0.000
+episode Var              0.013    0.004                           
+chapter_uid Var          0.028    0.004                           
+==================================================================
+
+-----------------------------------------------------------------
+Primary Intraclass Correlation Coefficients (ICC):
+Episode ICC: 0.0295
+Chapter ICC: 0.0621
+Log-Likelihood: -38418.348
+AIC: 76848.696
+BIC: 76900.151
+
+=================================================================
+MODEL STATISTICS: One Knot (Manual - Barbarossa)
+=================================================================
+          Mixed Linear Model Regression Results
+==========================================================
+Model:            MixedLM Dependent Variable: log_duration
+No. Observations: 39176   Method:             ML          
+No. Groups:       216     Scale:              0.4030      
+Min. group size:  18      Log-Likelihood:     -38418.0007 
+Max. group size:  407     Converged:          Yes         
+Mean group size:  181.4                                   
+----------------------------------------------------------
+                Coef.  Std.Err.   z    P>|z| [0.025 0.975]
+----------------------------------------------------------
+Intercept        1.458    0.047 31.086 0.000  1.366  1.550
+episode_shifted -0.001    0.001 -1.401 0.161 -0.003  0.001
+spline_1        -0.001    0.001 -0.894 0.371 -0.003  0.001
+episode Var      0.013    0.004                           
+chapter_uid Var  0.028    0.004                           
+==========================================================
+
+-----------------------------------------------------------------
+Primary Intraclass Correlation Coefficients (ICC):
+Episode ICC: 0.0292
+Chapter ICC: 0.0622
+Log-Likelihood: -38418.001
+AIC: 76848.001
+BIC: 76899.456
+
+=================================================================
+MODEL STATISTICS: One Knot (Manual - Stalingrad)
+=================================================================
+          Mixed Linear Model Regression Results
+==========================================================
+Model:            MixedLM Dependent Variable: log_duration
+No. Observations: 39176   Method:             ML          
+No. Groups:       216     Scale:              0.4031      
+Min. group size:  18      Log-Likelihood:     -38418.1409 
+Max. group size:  407     Converged:          Yes         
+Mean group size:  181.4                                   
+----------------------------------------------------------
+                Coef.  Std.Err.   z    P>|z| [0.025 0.975]
+----------------------------------------------------------
+Intercept        1.481    0.029 50.721 0.000  1.424  1.538
+episode_shifted -0.002    0.000 -6.962 0.000 -0.003 -0.002
+spline_1        -0.000    0.001 -0.719 0.472 -0.002  0.001
+episode Var      0.013    0.004                           
+chapter_uid Var  0.028    0.004                           
+==========================================================
+
+-----------------------------------------------------------------
+Primary Intraclass Correlation Coefficients (ICC):
+Episode ICC: 0.0294
+Chapter ICC: 0.0621
+Log-Likelihood: -38418.141
+AIC: 76848.282
+BIC: 76899.737
+
+=================================================================
+MODEL STATISTICS: One Knot (Automated Best)
+=================================================================
+           Mixed Linear Model Regression Results
+===========================================================
+Model:             MixedLM Dependent Variable: log_duration
+No. Observations:  39176   Method:             ML          
+No. Groups:        216     Scale:              0.4030      
+Min. group size:   18      Log-Likelihood:     -38415.9884 
+Max. group size:   407     Converged:          Yes         
+Mean group size:   181.4                                   
+-----------------------------------------------------------
+                Coef.  Std.Err.    z    P>|z| [0.025 0.975]
+-----------------------------------------------------------
+Intercept        1.515    0.024  63.305 0.000  1.468  1.562
+episode_shifted -0.003    0.000 -13.790 0.000 -0.003 -0.002
+spline_1         0.003    0.001   2.207 0.027  0.000  0.006
+episode Var      0.013    0.004                            
+chapter_uid Var  0.028    0.004                            
+===========================================================
+
+-----------------------------------------------------------------
+Primary Intraclass Correlation Coefficients (ICC):
+Episode ICC: 0.0283
+Chapter ICC: 0.0623
+Log-Likelihood: -38415.988
+AIC: 76843.977
+BIC: 76895.432
+Found Optimal Knot: 716
+
+MODEL COMPARISON (Ranked by AIC)
+-----------------------------------------------------------------
+                    Model Name  Log-likelihood       AIC       BIC  delta_aic  delta_bic
+     One Knot (Automated Best)      -38415.988 76843.977 76895.432      0.000      5.755
+             Linear (No Knots)      -38418.399 76846.798 76889.677      2.821      0.000
+One Knot (Manual - Barbarossa)      -38418.001 76848.001 76899.456      4.025      9.779
+One Knot (Manual - Stalingrad)      -38418.141 76848.282 76899.737      4.305     10.060
+                     Quadratic      -38418.348 76848.696 76900.151      4.719     10.474
+                    Null Model      -38499.182 77006.365 77040.668    162.388    150.991
+
+Best model based on AIC: One Knot (Automated Best)
+
+RESIDUAL DIAGNOSTICS: Shot duration: One Knot (Automated Best)
+------------------------------------------------------------
+Residual mean: 1.4663921836380463e-16
+Residual standard deviation: 0.6299118309679653
+Number of observations: 39176
+Number of episodes: 216
+
+Ljung-Box test:
+      lb_stat  lb_pvalue
+10  10.258226   0.418138
+
+Random-effects covariance:
+          episode
+episode  0.012553
+
+Variance components:
+[0.02762717]
+
+Residual variance:
+0.4030368193377248
+
+Likelihood-ratio test (linear vs. Stalingrad knot):
+{'LR statistic': np.float64(0.516078491229564), 'Degrees of freedom': 1, 'p-value': np.float64(0.4725192967885754)}

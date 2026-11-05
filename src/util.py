@@ -14,14 +14,18 @@ from dotenv import load_dotenv
 # Paths
 load_dotenv()
 
-VIDEO_DATA_TSV = Path(os.getenv("VIDEO_DATA_TSV")).resolve()
-CHAPTERS_DATA_TSV = Path(os.getenv("CHAPTERS_DATA_TSV")).resolve()
-KEYFRAME_CLASSIFICATION_TSV = Path(os.getenv("KEYFRAME_CLASSIFICATION_TSV")).resolve()
+DAT_DIR = Path(Path(__file__).parent.parent.resolve() / "dat").resolve()
+VIDEO_DATA_TSV = Path(DAT_DIR / "video_data.tsv").resolve()
+CHAPTERS_DATA_TSV = Path(DAT_DIR / "chapter_data.tsv").resolve()
+KEYFRAME_CLASSIFICATION_TSV = Path(DAT_DIR / "keyframe_classification_data.tsv").resolve()
+SCENES_DIR = Path(DAT_DIR / "scenes").resolve()
 DOC_DIR = Path(Path(__file__).parent.parent.resolve() / "doc").resolve()
-NARRATIVES_DATA_TSV  = Path(os.getenv("NARRATIVES_DATA_TSV")).resolve()
+ANALYSIS_DIR = Path(Path(__file__).parent.parent.resolve() / "src" / "analysis").resolve()
 
 assert VIDEO_DATA_TSV.is_file(), "Could not find video data TSV."
 assert CHAPTERS_DATA_TSV.is_file(), "Could not find chapters data TSV."
+assert KEYFRAME_CLASSIFICATION_TSV.is_file(), "Could not find keyframe data TSV."
+assert SCENES_DIR.is_dir(), "Could not find scenes directory."
 
 CHAPTER_BLACKLIST = [
     {
@@ -30,6 +34,41 @@ CHAPTER_BLACKLIST = [
         "chapter": "5",
     },
 ]
+
+
+def get_chapter_cuts(row: pd.Series) -> pd.DataFrame | None:
+    """Returns shot boundaries within one chapter."""
+    start = row.get("start_frame")
+    end = row.get("end_frame")
+
+    if start is None or end is None or pd.isna(start) or pd.isna(end):
+        return None
+
+    scenes_df = get_scenes_df(row["filestem"])
+    if scenes_df is None:
+        return None
+
+    # Find scenes that overlap with the chapter boundaries
+    mask = (scenes_df["start_frame"] <= end) & (scenes_df["end_frame"] >= start)
+
+    return scenes_df[mask].copy()
+
+
+def get_chapter_shot_durations_in_sec(row: pd.Series) -> list[float]:
+    """Returns a list of shot durations or empty list for a chapter"""
+    cuts_df = get_chapter_cuts(row)
+
+    if cuts_df is None or cuts_df.empty:
+        return []
+
+    df_video = pd.read_csv(VIDEO_DATA_TSV, sep="\t")
+    fps = df_video[df_video["filestem"] == row["filestem"]]["fps"].values[0]
+    cuts_df["duration_ms"] = cuts_df.apply(
+        lambda r: frames_to_millisecs(r["end_frame"] - r["start_frame"], fps) / 1000, axis=1
+    )
+
+    return cuts_df["duration_ms"].tolist()
+
 
 def get_filtered_chapters_df(class_label: str) -> pd.DataFrame():
     """Returns chapter dataframe filtered for chapters classified with class_label."""
@@ -64,77 +103,6 @@ def get_filtered_chapters_df(class_label: str) -> pd.DataFrame():
 
     return df
 
-def get_cleaned_narratives_df() -> pd.DataFrame():
-    # Load chapters
-    tsv_file = Path(NARRATIVES_DATA_TSV).resolve()
-    df = pd.read_csv(tsv_file, sep="\t")
-
-    # Extract year and episode from filestem (e.g. "511_1940")
-    df[["episode", "year"]] = df["filestem"].str.extract(r"(\d+)_(\d{4})").astype(int)
-
-    # Sort chronologically
-    df = df.sort_values("year")
-
-    # Extract year and episode from filestem (e.g. "511_1940")
-    df[["episode", "year"]] = df["filestem"].str.extract(r"(\d+)_(\d{4})").astype(int)
-
-    # Sort chronologically
-    df = df.sort_values("year")
-
-    multi_label_cols = [
-        "narrative_framing",
-        "embodiment_mode",
-        "legitimation_strategy",
-        "enemy_moral_status",
-        "actor_configuration",
-        "violence_visibility"
-    ]
-
-    single_label_cols = [
-        "agency_level"
-    ]
-
-    # clean faulty values
-    df["violence_visibility"] = (
-        df["violence_visibility"]
-        .str.replace("i;m;p;l;i;e;d", "implied", regex=False)
-        .str.replace("a;b;s;e;n;t", "absent", regex=False)
-        .str.split(";")
-        .apply(lambda x: ";".join(sorted(x)))
-    )
-
-    df["agency_level"] = (
-        df["agency_level"]
-        .str.replace("['medium']", "medium", regex=False)
-        .str.replace("['high']", "high", regex=False)
-        .str.split(";")
-        .apply(lambda x: ";".join(sorted(x)))
-    )
-
-    for col in multi_label_cols:
-        # Convert semicolon-separated strings to lists
-        df[col] = df[col].str.split(";")
-        
-        # Remove whitespace and lowercase everything
-        df[col] = df[col].apply(lambda lst: [x.strip().lower() for x in lst if x])
-        
-        # Sort the labels so that order does not matter
-        df[col] = df[col].apply(lambda lst: sorted(lst))
-        
-        # Convert back to string for get_dummies
-        df[col] = df[col].apply(lambda lst: ";".join(lst))
-
-    for col in multi_label_cols:
-        dummies = df[col].str.get_dummies(sep=";")
-        dummies.columns = [f"{col}_{c}" for c in dummies.columns]
-        df = pd.concat([df, dummies], axis=1)
-
-    for col in single_label_cols:
-        dummies = pd.get_dummies(df[col])
-        dummies.columns = [f"{col}_{c}" for c in dummies.columns]
-        df = pd.concat([df, dummies], axis=1)
-
-    return df
 
 def frames_to_timestamp(frame_no: int, fps: int | float) -> str:
     """Convert a frame number to mm:ss timestamp format in movie"""
