@@ -4,7 +4,7 @@ This is the repository accompanying the paper _Staging War in the Deutsche Woche
 
 ## Data
 
-Due to repository size limits, raw data were deleted from repository and, instead, aggregated in the two following `tsv` files. The complete data can be requested from the authors.
+Due to repository size limits, raw data were deleted from repository and, instead, aggregated in the two following `tsv` files. The complete data can be requested from the authors. Analyses can be calculated only using aggregated data.
 
 1. `video_data.tsv`
 
@@ -55,6 +55,7 @@ Due to repository size limits, raw data were deleted from repository and, instea
 .
 ├── .env  # Environment variables
 ├── dat/
+│   ├── scenes/  # Shot boundary detection data
 │   ├── chapter_data.tsv  # Aggregated chapter data
 │   └── keyframe_classification_data.tsv  # Aggregated keyframe classification data
 │   └── video_data.tsv  # Aggregated video data
@@ -70,31 +71,34 @@ Due to repository size limits, raw data were deleted from repository and, instea
 
 ## Requirements
 
-- Python 3.11 to 3.13
+- Python 3.14
+- conda
 - Git LFS
 
 ## Getting Started
 
-- Create a virtual environment `python -m venv .venv`
-- Activate virtual environment `source .venv/bin/activate`
+- Create conda environment `conda create -n dws python=3.14.6 -y`
+- Activate conda environment `conda activate dws`
 - Install requirements `pip install -r requirements.txt`
-- Copy `.env.example` and save as `.env`. Add environment values to environment variables.
+- To replicate the exact plots, Noto Sans fonts must be installed 
 
 ## Analysis
 
-### Analyze formal features in combat scenes
+### Analyze narration densities and shot lengths
 
 ```sh
 python -m src.analysis.lmm_analysis
 ```
 
-### Q2: Analyze soldier representations
+### Q2: Analyze soldier representations shot classifications
 
 ```sh
-python -m src.analysis.q2_formal_features
+python -m src.analysis.gee_analysis
 ```
 
 ## Data preprocessing
+
+For re-calculating data preprocessing, the additional data must be requested from the authors of this study. Afterwards, the necessary directory paths, must be set in  `.env`. (Copy `.env.example` and save as `.env`.)
 
 ### Transcribe audio data via whisper
 
@@ -153,7 +157,7 @@ git clone https://github.com/ttharden/Keyframe-Extraction-for-video-summarizatio
 
 Run `run_clip.sh`
 
-1. Extract Keyframes
+2. Extract Keyframes
 
 - Reformat CLIP Feature Outputs with `reformat_features.py`
 - Replace `init_center.py`in Keyframe-Extraction-for-video-summarization project with `/src/keyframe_selection_LMSKE/init_center.py` (contains bug fix)

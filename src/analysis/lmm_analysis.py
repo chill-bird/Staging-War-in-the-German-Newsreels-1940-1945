@@ -1,27 +1,33 @@
-"""Analyze word-count rates and shot durations with linear mixed models."""
+"""
+lmm_analysis
 
-import itertools
+===
+
+Mixed-effect models for continuous variables:
+- word counts
+- shot durations
+
+"""
+
 import warnings
 from pathlib import Path
+from typing import Literal
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from scipy import stats
-from scipy.stats import chi2
 import statsmodels.formula.api as smf
-from statsmodels.graphics.tsaplots import plot_acf
+from scipy.stats import chi2
 from statsmodels.stats.diagnostic import acorr_ljungbox
 
 from src.analysis.lmm_analysis_plots import (
-    plot_word_counts_per_episode_automated_best_knot,
     plot_shot_durations_per_episode_automated_best_knot,
+    plot_word_counts_per_episode_automated_best_knot,
 )
 from src.util import (
     DOC_DIR,
     KEYFRAME_CLASSIFICATION_TSV,
-    get_filtered_chapters_df,
     get_chapter_shot_durations_in_sec,
+    get_filtered_chapters_df,
 )
 
 # -----------------------------------------------------------------
@@ -30,6 +36,7 @@ from src.util import (
 
 FIG_WORD_COUNTS_FILE = Path(DOC_DIR / "imgs" / "word_counts_lmm.pdf").resolve()
 FIG_SHOT_DURATION_FILE = Path(DOC_DIR / "imgs" / "shot_duration_lmm.pdf").resolve()
+KNOT_SEARCH_RESULTS_DIR = Path(Path(__file__).parent.resolve() / "knot_search_results").resolve()
 
 DF = get_filtered_chapters_df("combat")
 KEYFRAMES_DF = pd.read_csv(KEYFRAME_CLASSIFICATION_TSV, sep="\t")
@@ -173,8 +180,8 @@ def fit_null_model(
     df: pd.DataFrame,
     feature: str,
     group_by: str = "episode",
-    vc_formula: dict = None,
-    extra_cols: list = None,
+    vc_formula: dict | None = None,
+    extra_cols: list | None = None,
 ):
     """Fit an intercept-only mixed-effects model."""
     return _fit_mixed_model(df, feature, f"{feature} ~ 1", group_by, vc_formula, extra_cols)
@@ -184,8 +191,8 @@ def fit_linear_mixed_model(
     df: pd.DataFrame,
     feature: str,
     group_by: str = "episode",
-    vc_formula: dict = None,
-    extra_cols: list = None,
+    vc_formula: dict | None = None,
+    extra_cols: list | None = None,
 ):
     """Fit a linear mixed-effects model without breakpoints."""
     return _fit_mixed_model(
@@ -198,13 +205,33 @@ def fit_linear_mixed_model(
     )
 
 
+def fit_quadratic_mixed_model(
+    df: pd.DataFrame,
+    feature: str,
+    group_by: str = "episode",
+    vc_formula: dict | None = None,
+    extra_cols: list | None = None,
+):
+    """Fit a linear mixed-effects model without breakpoints."""
+    data = _prepare_data(df, feature, group_by, extra_cols)
+
+    model = smf.mixedlm(
+        f"{feature} ~ episode_shifted + I(episode_shifted**2)",
+        data=data,
+        groups=group_by,
+        re_formula="1",
+        vc_formula=vc_formula,
+    )
+    return _robust_fit(model)
+
+
 def fit_lmm_one_knot(
     df: pd.DataFrame,
     feature: str,
     knot: int,
     group_by: str = "episode",
-    vc_formula: dict = None,
-    extra_cols: list = None,
+    vc_formula: dict | None = None,
+    extra_cols: list | None = None,
 ):
     data = _prepare_data(df, feature, group_by, extra_cols)
     data["spline_1"] = np.maximum(0, data["episode_shifted"] - (knot - data["episode"].min()))
@@ -225,8 +252,8 @@ def fit_lmm_two_knots(
     knot_1: int,
     knot_2: int,
     group_by: str = "episode",
-    vc_formula: dict = None,
-    extra_cols: list = None,
+    vc_formula: dict | None = None,
+    extra_cols: list | None = None,
 ):
     data = _prepare_data(df, feature, group_by, extra_cols)
     episode_min = data["episode"].min()
@@ -248,9 +275,9 @@ def find_best_model_one_knot(
     feature: str,
     min_episodes_per_segment: int = 15,
     group_by: str = "episode",
-    vc_formula: dict = None,
-    extra_cols: list = None,
-    candidate_episodes: list = None,
+    vc_formula: dict | None = None,
+    extra_cols: list | None = None,
+    candidate_episodes: list | None = None,
 ):
     """
     Selects the best one-knot LMM using LMM AIC.
@@ -310,92 +337,6 @@ def find_best_model_one_knot(
     print(f"Best one-knot LMM: episode {best['knot']}, AIC = {best['AIC']:.2f}")
 
     return best["model"], best["knot"], results_df
-
-
-def find_best_model_two_knots(
-    df: pd.DataFrame,
-    feature: str,
-    min_episodes_per_segment: int = 15,
-    group_by: str = "episode",
-    vc_formula: dict = None,
-    extra_cols: list = None,
-    candidate_episodes: list = None,
-):
-    """
-    Selects the best two-knot LMM using LMM AIC.
-
-    All candidate combinations are fitted using the full dataset.
-    """
-
-    data = _prepare_data(df, feature, group_by, extra_cols)
-
-    episodes = np.sort(data["episode"].unique())
-
-    if len(episodes) < 3 * min_episodes_per_segment + 1:
-        raise ValueError("Not enough episodes for two-breakpoint search.")
-
-    if candidate_episodes is None:
-        candidates = episodes[min_episodes_per_segment:-min_episodes_per_segment]
-    else:
-        candidates = np.intersect1d(episodes, candidate_episodes)
-
-    # Map actual episode IDs to chronological positions.
-    positions = {episode: idx for idx, episode in enumerate(episodes)}
-
-    results = []
-
-    for knot_1, knot_2 in itertools.combinations(candidates, 2):
-        pos_1 = positions[knot_1]
-        pos_2 = positions[knot_2]
-
-        # Ensure enough episodes in all three segments.
-        if pos_1 < min_episodes_per_segment:
-            continue
-
-        if pos_2 - pos_1 < min_episodes_per_segment:
-            continue
-
-        if len(episodes) - pos_2 < min_episodes_per_segment:
-            continue
-
-        model = fit_lmm_two_knots(
-            df,
-            feature,
-            int(knot_1),
-            int(knot_2),
-            group_by,
-            vc_formula,
-            extra_cols,
-        )
-
-        if model is None:
-            continue
-
-        model.knots_found = (int(knot_1), int(knot_2))
-
-        results.append(
-            {
-                "knot_1": int(knot_1),
-                "knot_2": int(knot_2),
-                "AIC": model.aic,
-                "BIC": model.bic,
-                "log_likelihood": model.llf,
-                "model": model,
-            }
-        )
-
-    if not results:
-        raise RuntimeError("No two-knot LMM successfully converged.")
-
-    best = min(results, key=lambda x: x["AIC"])
-
-    results_df = pd.DataFrame(results).drop(columns="model")
-    results_df = results_df.sort_values("AIC").reset_index(drop=True)
-    results_df["delta_AIC"] = results_df["AIC"] - results_df["AIC"].min()
-
-    print(f"Best two-knot LMM: {best['knot_1']}, {best['knot_2']}, " f"AIC = {best['AIC']:.2f}")
-
-    return best["model"], (best["knot_1"], best["knot_2"]), results_df
 
 
 def print_model_statistics(model, title: str):
@@ -498,45 +439,9 @@ def diagnose_lmm(
     data["residual"] = residuals
     data["fitted"] = fitted
 
-    fig, axes = plt.subplots(2, 3, figsize=(17, 10))
-
-    axes[0, 0].scatter(fitted, residuals, alpha=0.3, s=12)
-    axes[0, 0].axhline(0, color="red", linestyle="--")
-    axes[0, 0].set_title("Residuals vs fitted")
-    axes[0, 0].set_xlabel("Fitted values")
-    axes[0, 0].set_ylabel("Residuals")
-
-    stats.probplot(residuals, dist="norm", plot=axes[0, 1])
-    axes[0, 1].set_title("Normal Q-Q plot")
-
-    axes[0, 2].hist(residuals, bins=40, density=True, alpha=0.7)
-    axes[0, 2].set_title("Residual distribution")
-    axes[0, 2].set_xlabel("Residual")
-
     episode_residuals = data.groupby("episode")["residual"].mean().sort_index()
-    axes[1, 0].plot(episode_residuals.index, episode_residuals.values, marker="o", markersize=3)
-    axes[1, 0].axhline(0, color="red", linestyle="--")
-    axes[1, 0].set_title("Mean residual per episode")
-    axes[1, 0].set_xlabel("Episode")
-    axes[1, 0].set_ylabel("Mean residual")
 
     n_episodes = len(episode_residuals)
-    if n_episodes >= 4:
-        lags = min(max_lags, n_episodes // 2 - 1)
-        plot_acf(episode_residuals.values, lags=lags, ax=axes[1, 1], zero=False)
-        axes[1, 1].set_title("Episode-level residual ACF")
-    else:
-        axes[1, 1].text(0.5, 0.5, "Not enough episodes", ha="center", va="center")
-
-    axes[1, 2].scatter(fitted, np.abs(residuals), alpha=0.3, s=12)
-    axes[1, 2].set_title("Absolute residuals vs fitted")
-    axes[1, 2].set_xlabel("Fitted values")
-    axes[1, 2].set_ylabel("|Residuals|")
-
-    fig.suptitle(title, fontsize=15)
-
-    plt.tight_layout()
-    plt.show()
 
     print(f"\nRESIDUAL DIAGNOSTICS: {title}")
     print("-" * 60)
@@ -631,36 +536,49 @@ def _diagnose_selected_model(models: dict, title_prefix: str) -> None:
     diagnose_lmm(best_model, title=f"{title_prefix}: {model_name}")
 
 
-def analyze_word_counts() -> None:
+def _analyze_feature(
+    df: pd.DataFrame,
+    feature: str,
+    analysis_title: str,
+    diagnosis_title: str,
+    plot_function,
+    figure_file: Path,
+    results_file: str,
+    plot_baseline: Literal["linear", "quadratic"] = "linear",
+    group_by: str = "episode",
+    variance_components: dict | None = None,
+    extra_cols: list[str] | None = None,
+    plot_kwargs: dict | None = None,
+) -> None:
     print("\n=================================================")
-    print("ANALYSIS: WORD COUNT PER MINUTE")
+    print(f"ANALYSIS: {analysis_title}")
     print("=================================================")
 
-    df = DF.copy()
-    has_transcription = df["audio_transcription"].notna()
-    df.loc[has_transcription, "word_count"] = df.loc[
-        has_transcription, "audio_transcription"
-    ].apply(count_words)
-    df["duration_sec"] = df.apply(get_duration_sec, axis=1)
-    df["word_count_per_minute"] = df.apply(words_per_minute, axis=1)
+    model_options = {
+        "group_by": group_by,
+        "vc_formula": variance_components,
+        "extra_cols": extra_cols,
+    }
 
     print("\n--- Running LMM Configurations ---")
 
-    m_null = fit_null_model(df, "word_count_per_minute")
-    m_linear = fit_linear_mixed_model(df, "word_count_per_minute")
+    m_null = fit_null_model(df, feature, **model_options)
+    m_linear = fit_linear_mixed_model(df, feature, **model_options)
     m_one_knot_barbarossa = fit_lmm_one_knot(
-        df, "word_count_per_minute", MANUAL_KNOTS["Barbarossa"]["episode"]
+        df, feature, MANUAL_KNOTS["Barbarossa"]["episode"], **model_options
     )
     m_one_knot_stalingrad = fit_lmm_one_knot(
-        df, "word_count_per_minute", MANUAL_KNOTS["Stalingrad Defeat"]["episode"]
+        df, feature, MANUAL_KNOTS["Stalingrad Defeat"]["episode"], **model_options
     )
+    m_quadratic = fit_quadratic_mixed_model(df, feature, **model_options)
 
     print("\n--- Searching for Optimal Breakpoints ---")
-    m_one_knot_auto, _, results_one = find_best_model_one_knot(df, "word_count_per_minute")
+    m_one_knot_auto, knot, results_one = find_best_model_one_knot(df, feature, **model_options)
 
     models = {
         "Null Model": m_null,
         "Linear (No Knots)": m_linear,
+        "Quadratic": m_quadratic,
         "One Knot (Manual - Barbarossa)": m_one_knot_barbarossa,
         "One Knot (Manual - Stalingrad)": m_one_knot_stalingrad,
         "One Knot (Automated Best)": m_one_knot_auto,
@@ -669,105 +587,67 @@ def analyze_word_counts() -> None:
     for name, model in models.items():
         print_model_statistics(model, name)
 
-    _diagnose_selected_model(models, "WPM")
+    _diagnose_selected_model(models, diagnosis_title)
 
-    fig, _ = plot_word_counts_per_episode_automated_best_knot(
-        df, m_linear, m_one_knot_auto, m_one_knot_auto.knot_found
-    )
-    fig.savefig(FIG_WORD_COUNTS_FILE)
-
-    results_one.to_csv("word_count_one_knot_search.csv", index=False)
-
-
-def analyze_shot_durations() -> None:
-    print("\n\n=================================================")
-    print("ANALYSIS: SHOT DURATIONS")
-    print("=================================================")
-
-    df = _prepare_shot_duration_data(DF)
-    group_by = "episode"
-    variance_components = {"chapter_uid": "0 + C(chapter_uid)"}
-    extra_cols = ["chapter_uid"]
-
-    print("\n--- Running LMM Configurations ---")
-
-    m_null_shot = fit_null_model(
-        df,
-        "log_duration",
-        group_by,
-        vc_formula=variance_components,
-        extra_cols=extra_cols,
-    )
-    m_linear_shot = fit_linear_mixed_model(
-        df,
-        "log_duration",
-        group_by,
-        vc_formula=variance_components,
-        extra_cols=extra_cols,
-    )
-
-    m_one_knot_manual_shot_barbarossa = fit_lmm_one_knot(
-        df,
-        "log_duration",
-        MANUAL_KNOTS["Barbarossa"]["episode"],
-        group_by,
-        vc_formula=variance_components,
-        extra_cols=extra_cols,
-    )
-
-    m_one_knot_manual_shot_stalingrad = fit_lmm_one_knot(
-        df,
-        "log_duration",
-        MANUAL_KNOTS["Stalingrad Defeat"]["episode"],
-        group_by,
-        vc_formula=variance_components,
-        extra_cols=extra_cols,
-    )
-
-    print("\n--- Searching for Optimal Breakpoints ---")
-    m_one_knot_auto_shot, knot_auto_shot, _ = find_best_model_one_knot(
-        df,
-        "log_duration",
-        group_by=group_by,
-        vc_formula=variance_components,
-        extra_cols=extra_cols,
-    )
-    # m_two_knots_auto_shot, _, _ = find_best_model_two_knots(
-    #     df,
-    #     "log_duration",
-    #     group_by=group_by,
-    #     vc_formula=variance_components,
-    #     extra_cols=extra_cols,
-    # )
-
-    models_shot = {
-        "Null Model": m_null_shot,
-        "Linear (No Knots)": m_linear_shot,
-        "One Knot (Manual - Barbarossa)": m_one_knot_manual_shot_barbarossa,
-        "One Knot (Manual - Stalingrad)": m_one_knot_manual_shot_stalingrad,
-        "One Knot (Automated Best)": m_one_knot_auto_shot,
-        # "Two Knots (Automated Best)": m_two_knots_auto_shot,
-    }
-
-    for name, model in models_shot.items():
-        print_model_statistics(model, name)
-
-    _diagnose_selected_model(models_shot, "Shot duration")
-
-    likelihood_test = likelihood_ratio_test(
-        m_linear_shot, m_one_knot_manual_shot_stalingrad, df_diff=1
-    )
+    likelihood_test = likelihood_ratio_test(m_linear, m_one_knot_stalingrad, df_diff=1)
     print("\nLikelihood-ratio test (linear vs. Stalingrad knot):")
     print(likelihood_test)
 
-    fig, _ = plot_shot_durations_per_episode_automated_best_knot(
-        df, m_linear_shot, m_one_knot_auto_shot, knot_auto_shot, aggregate_by_chapter=True
+    plot_model = m_quadratic if plot_baseline == "quadratic" else m_linear
+    fig, _ = plot_function(
+        df,
+        plot_model,
+        m_one_knot_auto,
+        knot,
+        **(plot_kwargs or {}),
     )
-    fig.savefig(FIG_SHOT_DURATION_FILE)
+    fig.savefig(figure_file)
+
+    results_one.to_csv(results_file, index=False)
+
+
+def analyze_word_counts() -> None:
+    df = DF.copy()
+    has_transcription = df["audio_transcription"].notna()
+    df.loc[has_transcription, "word_count"] = df.loc[
+        has_transcription, "audio_transcription"
+    ].apply(count_words)
+    df["duration_sec"] = df.apply(get_duration_sec, axis=1)
+    df["word_count_per_minute"] = df.apply(words_per_minute, axis=1)
+
+    _analyze_feature(
+        df=df,
+        feature="word_count_per_minute",
+        analysis_title="WORD COUNT PER MINUTE",
+        diagnosis_title="WPM",
+        plot_function=plot_word_counts_per_episode_automated_best_knot,
+        figure_file=FIG_WORD_COUNTS_FILE,
+        results_file=Path(KNOT_SEARCH_RESULTS_DIR / "word_count_knot_search.csv").resolve(),
+        plot_baseline="quadratic",
+    )
+
+
+def analyze_shot_durations() -> None:
+    df = _prepare_shot_duration_data(DF)
+    variance_components = {"chapter_uid": "0 + C(chapter_uid)"}
+    extra_cols = ["chapter_uid"]
+
+    _analyze_feature(
+        df=df,
+        feature="log_duration",
+        analysis_title="SHOT DURATIONS",
+        diagnosis_title="Shot duration",
+        plot_function=plot_shot_durations_per_episode_automated_best_knot,
+        figure_file=FIG_SHOT_DURATION_FILE,
+        results_file=Path(KNOT_SEARCH_RESULTS_DIR / "durations_knot_search.csv").resolve(),
+        variance_components=variance_components,
+        extra_cols=extra_cols,
+        plot_kwargs={"aggregate_by_chapter": True},
+    )
 
 
 def main() -> None:
-    # analyze_word_counts()
+    analyze_word_counts()
     analyze_shot_durations()
 
 

@@ -1,0 +1,883 @@
+
+=================================================================
+ANALYSIS: SHOT SCALE (CLOSE-UPS VS REST)
+=================================================================
+
+--- Baseline Working Correlations (GEE 'ICC' Equivalent) ---
+Episode-level Working Correlation: 0.0489
+Chapter-level Working Correlation: 0.1144
+
+--- Running GEE Configurations ---
+
+--- Searching for Optimal Breakpoint ---
+Best one-knot GEE: episode 567, QIC = 36401.84
+
+=================================================================
+MODEL STATISTICS: Null Model
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:                    is_close   No. Observations:                31741
+Model:                                 GEE   No. clusters:                      766
+Method:                        Generalized   Min. cluster size:                   1
+                      Estimating Equations   Max. cluster size:                 194
+Family:                           Binomial   Mean cluster size:                41.4
+Dependence structure:         Exchangeable   Num. iterations:                     6
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         12:15:22
+==============================================================================
+                 coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+Intercept     -1.0885      0.031    -35.496      0.000      -1.149      -1.028
+==============================================================================
+Skew:                          1.0722   Kurtosis:                      -0.8504
+Centered skew:                 0.9163   Centered kurtosis:             -0.4968
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept    0.336731
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 36651.562
+Working Correlation (Alpha): 0.1144
+
+=================================================================
+MODEL STATISTICS: Linear (No Knots)
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:                    is_close   No. Observations:                31741
+Model:                                 GEE   No. clusters:                      766
+Method:                        Generalized   Min. cluster size:                   1
+                      Estimating Equations   Max. cluster size:                 194
+Family:                           Binomial   Mean cluster size:                41.4
+Dependence structure:         Exchangeable   Num. iterations:                     6
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         12:15:22
+==================================================================================
+                     coef    std err          z      P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept         -1.4572      0.072    -20.330      0.000      -1.598      -1.317
+episode_scaled     0.0294      0.005      6.417      0.000       0.020       0.038
+==============================================================================
+Skew:                          1.0615   Kurtosis:                      -0.8381
+Centered skew:                 0.9163   Centered kurtosis:             -0.4968
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept         0.232877
+episode_scaled    1.029803
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 36456.616
+Working Correlation (Alpha): 0.1134
+
+=================================================================
+MODEL STATISTICS: Quadratic
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:                    is_close   No. Observations:                31741
+Model:                                 GEE   No. clusters:                      766
+Method:                        Generalized   Min. cluster size:                   1
+                      Estimating Equations   Max. cluster size:                 194
+Family:                           Binomial   Mean cluster size:                41.4
+Dependence structure:         Exchangeable   Num. iterations:                     7
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         12:15:23
+==========================================================================================
+                             coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------------------
+Intercept                 -1.3621      0.128    -10.669      0.000      -1.612      -1.112
+episode_scaled             0.0085      0.021      0.399      0.690      -0.033       0.050
+I(episode_scaled ** 2)     0.0008      0.001      1.062      0.288      -0.001       0.002
+==============================================================================
+Skew:                          1.0610   Kurtosis:                      -0.8370
+Centered skew:                 0.9163   Centered kurtosis:             -0.4968
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept                 0.256125
+episode_scaled            1.008543
+I(episode_scaled ** 2)    1.000810
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 36448.680
+Working Correlation (Alpha): 0.1134
+
+=================================================================
+MODEL STATISTICS: One Knot (Manual - Barbarossa)
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:                    is_close   No. Observations:                31741
+Model:                                 GEE   No. clusters:                      766
+Method:                        Generalized   Min. cluster size:                   1
+                      Estimating Equations   Max. cluster size:                 194
+Family:                           Binomial   Mean cluster size:                41.4
+Dependence structure:         Exchangeable   Num. iterations:                     7
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         12:15:23
+==================================================================================
+                     coef    std err          z      P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept         -1.1190      0.173     -6.481      0.000      -1.457      -0.781
+episode_scaled    -0.0515      0.036     -1.449      0.147      -0.121       0.018
+spline_1           0.0885      0.038      2.358      0.018       0.015       0.162
+==============================================================================
+Skew:                          1.0590   Kurtosis:                      -0.8364
+Centered skew:                 0.9163   Centered kurtosis:             -0.4968
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept         0.326617
+episode_scaled    0.949786
+spline_1          1.092520
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 36403.321
+Found Optimal Knot: 564
+Working Correlation (Alpha): 0.1126
+
+=================================================================
+MODEL STATISTICS: One Knot (Manual - Stalingrad)
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:                    is_close   No. Observations:                31741
+Model:                                 GEE   No. clusters:                      766
+Method:                        Generalized   Min. cluster size:                   1
+                      Estimating Equations   Max. cluster size:                 194
+Family:                           Binomial   Mean cluster size:                41.4
+Dependence structure:         Exchangeable   Num. iterations:                     6
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         12:15:23
+==================================================================================
+                     coef    std err          z      P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept         -1.4043      0.102    -13.767      0.000      -1.604      -1.204
+episode_scaled     0.0218      0.010      2.088      0.037       0.001       0.042
+spline_1           0.0167      0.019      0.902      0.367      -0.020       0.053
+==============================================================================
+Skew:                          1.0612   Kurtosis:                      -0.8371
+Centered skew:                 0.9163   Centered kurtosis:             -0.4968
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept         0.245529
+episode_scaled    1.022052
+spline_1          1.016889
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 36453.668
+Found Optimal Knot: 648
+Working Correlation (Alpha): 0.1135
+
+=================================================================
+MODEL STATISTICS: One Knot (Automated Best)
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:                    is_close   No. Observations:                31741
+Model:                                 GEE   No. clusters:                      766
+Method:                        Generalized   Min. cluster size:                   1
+                      Estimating Equations   Max. cluster size:                 194
+Family:                           Binomial   Mean cluster size:                41.4
+Dependence structure:         Exchangeable   Num. iterations:                     7
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         12:15:23
+==================================================================================
+                     coef    std err          z      P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept         -1.1222      0.169     -6.650      0.000      -1.453      -0.791
+episode_scaled    -0.0475      0.033     -1.428      0.153      -0.113       0.018
+spline_1           0.0850      0.035      2.403      0.016       0.016       0.154
+==============================================================================
+Skew:                          1.0589   Kurtosis:                      -0.8363
+Centered skew:                 0.9163   Centered kurtosis:             -0.4968
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept         0.325552
+episode_scaled    0.953647
+spline_1          1.088707
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 36401.842
+Found Optimal Knot: 567
+Working Correlation (Alpha): 0.1126
+
+MODEL COMPARISON (Ranked by QIC)
+-----------------------------------------------------------------
+                    Model Name       QIC  delta_QIC
+     One Knot (Automated Best) 36401.842      0.000
+One Knot (Manual - Barbarossa) 36403.321      1.479
+                     Quadratic 36448.680     46.838
+One Knot (Manual - Stalingrad) 36453.668     51.827
+             Linear (No Knots) 36456.616     54.774
+                    Null Model 36651.562    249.720
+
+Best model based on QIC: One Knot (Automated Best)
+
+
+=================================================================
+ANALYSIS: SHOT SCALE (LONG SHOTS VS REST)
+=================================================================
+
+--- Baseline Working Correlations (GEE 'ICC' Equivalent) ---
+Episode-level Working Correlation: 0.0548
+Chapter-level Working Correlation: 0.1077
+
+--- Running GEE Configurations ---
+
+--- Searching for Optimal Breakpoint ---
+Best one-knot GEE: episode 566, QIC = 40864.29
+
+=================================================================
+MODEL STATISTICS: Null Model
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:                     is_long   No. Observations:                31741
+Model:                                 GEE   No. clusters:                      766
+Method:                        Generalized   Min. cluster size:                   1
+                      Estimating Equations   Max. cluster size:                 194
+Family:                           Binomial   Mean cluster size:                41.4
+Dependence structure:         Exchangeable   Num. iterations:                     6
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         12:18:16
+==============================================================================
+                 coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+Intercept      0.6660      0.028     24.160      0.000       0.612       0.720
+==============================================================================
+Skew:                         -0.6340   Kurtosis:                      -1.5981
+Centered skew:                -0.5493   Centered kurtosis:             -1.1700
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept    1.94649
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 41073.608
+Working Correlation (Alpha): 0.1077
+
+=================================================================
+MODEL STATISTICS: Linear (No Knots)
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:                     is_long   No. Observations:                31741
+Model:                                 GEE   No. clusters:                      766
+Method:                        Generalized   Min. cluster size:                   1
+                      Estimating Equations   Max. cluster size:                 194
+Family:                           Binomial   Mean cluster size:                41.4
+Dependence structure:         Exchangeable   Num. iterations:                     6
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         12:18:17
+==================================================================================
+                     coef    std err          z      P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept          0.9356      0.060     15.587      0.000       0.818       1.053
+episode_scaled    -0.0218      0.004     -5.381      0.000      -0.030      -0.014
+==============================================================================
+Skew:                         -0.6299   Kurtosis:                      -1.5833
+Centered skew:                -0.5493   Centered kurtosis:             -1.1700
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept         2.548616
+episode_scaled    0.978464
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 40920.341
+Working Correlation (Alpha): 0.1048
+
+=================================================================
+MODEL STATISTICS: Quadratic
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:                     is_long   No. Observations:                31741
+Model:                                 GEE   No. clusters:                      766
+Method:                        Generalized   Min. cluster size:                   1
+                      Estimating Equations   Max. cluster size:                 194
+Family:                           Binomial   Mean cluster size:                41.4
+Dependence structure:         Exchangeable   Num. iterations:                     6
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         12:18:17
+==========================================================================================
+                             coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------------------
+Intercept                  0.8057      0.105      7.690      0.000       0.600       1.011
+episode_scaled             0.0073      0.018      0.393      0.694      -0.029       0.043
+I(episode_scaled ** 2)    -0.0011      0.001     -1.672      0.095      -0.002       0.000
+==============================================================================
+Skew:                         -0.6294   Kurtosis:                      -1.5811
+Centered skew:                -0.5493   Centered kurtosis:             -1.1700
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept                 2.238328
+episode_scaled            1.007283
+I(episode_scaled ** 2)    0.998861
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 40906.340
+Working Correlation (Alpha): 0.1049
+
+=================================================================
+MODEL STATISTICS: One Knot (Manual - Barbarossa)
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:                     is_long   No. Observations:                31741
+Model:                                 GEE   No. clusters:                      766
+Method:                        Generalized   Min. cluster size:                   1
+                      Estimating Equations   Max. cluster size:                 194
+Family:                           Binomial   Mean cluster size:                41.4
+Dependence structure:         Exchangeable   Num. iterations:                     6
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         12:18:17
+==================================================================================
+                     coef    std err          z      P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept          0.6243      0.147      4.252      0.000       0.337       0.912
+episode_scaled     0.0530      0.031      1.728      0.084      -0.007       0.113
+spline_1          -0.0821      0.033     -2.518      0.012      -0.146      -0.018
+==============================================================================
+Skew:                         -0.6283   Kurtosis:                      -1.5794
+Centered skew:                -0.5493   Centered kurtosis:             -1.1700
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept         1.866933
+episode_scaled    1.054461
+spline_1          0.921171
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 40865.851
+Found Optimal Knot: 564
+Working Correlation (Alpha): 0.1039
+
+=================================================================
+MODEL STATISTICS: One Knot (Manual - Stalingrad)
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:                     is_long   No. Observations:                31741
+Model:                                 GEE   No. clusters:                      766
+Method:                        Generalized   Min. cluster size:                   1
+                      Estimating Equations   Max. cluster size:                 194
+Family:                           Binomial   Mean cluster size:                41.4
+Dependence structure:         Exchangeable   Num. iterations:                     6
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         12:18:17
+==================================================================================
+                     coef    std err          z      P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept          0.8690      0.083     10.450      0.000       0.706       1.032
+episode_scaled    -0.0121      0.009     -1.354      0.176      -0.030       0.005
+spline_1          -0.0220      0.017     -1.297      0.195      -0.055       0.011
+==============================================================================
+Skew:                         -0.6297   Kurtosis:                      -1.5817
+Centered skew:                -0.5493   Centered kurtosis:             -1.1700
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept         2.384641
+episode_scaled    0.987981
+spline_1          0.978280
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 40917.472
+Found Optimal Knot: 648
+Working Correlation (Alpha): 0.1051
+
+=================================================================
+MODEL STATISTICS: One Knot (Automated Best)
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:                     is_long   No. Observations:                31741
+Model:                                 GEE   No. clusters:                      766
+Method:                        Generalized   Min. cluster size:                   1
+                      Estimating Equations   Max. cluster size:                 194
+Family:                           Binomial   Mean cluster size:                41.4
+Dependence structure:         Exchangeable   Num. iterations:                     6
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         12:18:18
+==================================================================================
+                     coef    std err          z      P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept          0.6215      0.144      4.312      0.000       0.339       0.904
+episode_scaled     0.0516      0.029      1.765      0.078      -0.006       0.109
+spline_1          -0.0811      0.031     -2.597      0.009      -0.142      -0.020
+==============================================================================
+Skew:                         -0.6282   Kurtosis:                      -1.5792
+Centered skew:                -0.5493   Centered kurtosis:             -1.1700
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept         1.861679
+episode_scaled    1.052953
+spline_1          0.922060
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 40864.293
+Found Optimal Knot: 566
+Working Correlation (Alpha): 0.1040
+
+MODEL COMPARISON (Ranked by QIC)
+-----------------------------------------------------------------
+                    Model Name       QIC  delta_QIC
+     One Knot (Automated Best) 40864.293      0.000
+One Knot (Manual - Barbarossa) 40865.851      1.558
+                     Quadratic 40906.340     42.047
+One Knot (Manual - Stalingrad) 40917.472     53.179
+             Linear (No Knots) 40920.341     56.047
+                    Null Model 41073.608    209.314
+
+Best model based on QIC: One Knot (Automated Best)
+
+
+=================================================================
+ANALYSIS: SOLDIER CLASSIFICATION (INDIVIDUAL VS OTHER SOLDIER DEPICTION)
+=================================================================
+
+--- Baseline Working Correlations (GEE 'ICC' Equivalent) ---
+Episode-level Working Correlation: 0.0366
+Chapter-level Working Correlation: 0.0818
+
+--- Running GEE Configurations ---
+
+--- Searching for Optimal Breakpoint ---
+Best one-knot GEE: episode 619, QIC = 27956.53
+
+=================================================================
+MODEL STATISTICS: Null Model
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:               is_individual   No. Observations:                24233
+Model:                                 GEE   No. clusters:                     1548
+Method:                        Generalized   Min.cluster size:                   1
+                      Estimating Equations   Max.cluster size:                 147
+Family:                           Binomial   Meancluster size:                15.7
+Dependence structure:         Exchangeable   Num.iterations:                     7
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         11:45:34
+==============================================================================
+                 coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+Intercept     -1.0397      0.025    -42.200      0.000      -1.088      -0.991
+==============================================================================
+Skew:                          1.0283   Kurtosis:                     -0.9425
+Centered skew:                 0.8218   Centered kurtosis:             -0.6407
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept    0.353561
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 28347.677
+Working Correlation (Alpha): 0.0818
+
+=================================================================
+MODEL STATISTICS: Linear (No Knots)
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:               is_individual   No. Observations:                24233
+Model:                                 GEE   No. clusters:                     1548
+Method:                        Generalized   Min.cluster size:                   1
+                      Estimating Equations   Max.cluster size:                 147
+Family:                           Binomial   Meancluster size:                15.7
+Dependence structure:         Exchangeable   Num.iterations:                     7
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         11:45:34
+==================================================================================
+                     coef    std err          z   P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept         -1.5172      0.051    -29.714   0.000      -1.617      -1.417
+episode_scaled     0.0382      0.003     11.120   0.000       0.031       0.045
+==============================================================================
+Skew:                          1.0094   Kurtosis:                     -0.9179
+Centered skew:                 0.8218   Centered kurtosis:             -0.6407
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept         0.219326
+episode_scaled    1.038916
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 27971.085
+Working Correlation (Alpha): 0.0636
+
+=================================================================
+MODEL STATISTICS: Quadratic
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:               is_individual   No. Observations:                24233
+Model:                                 GEE   No. clusters:                     1548
+Method:                        Generalized   Min.cluster size:                   1
+                      Estimating Equations   Max.cluster size:                 147
+Family:                           Binomial   Meancluster size:                15.7
+Dependence structure:         Exchangeable   Num.iterations:                     8
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         11:45:34
+==========================================================================================
+                             coef    std err    z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------------------
+Intercept                 -1.3881      0.077    -18.080      0.000      -1.539      -1.238
+episode_scaled             0.0082      0.0140.575      0.565      -0.020       0.036
+I(episode_scaled ** 2)     0.0012      0.0012.124      0.034    9.22e-05       0.002
+==============================================================================
+Skew:                          1.0087   Kurtosis:                     -0.9128
+Centered skew:                 0.8218   Centered kurtosis:             -0.6407
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept                 0.249537
+episode_scaled            1.008266
+I(episode_scaled ** 2)    1.001194
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 27960.981
+Working Correlation (Alpha): 0.0634
+
+=================================================================
+MODEL STATISTICS: One Knot (Manual - Barbarossa)
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:               is_individual   No. Observations:                24233
+Model:                                 GEE   No. clusters:                     1548
+Method:                        Generalized   Min.cluster size:                   1
+                      Estimating Equations   Max.cluster size:                 147
+Family:                           Binomial   Meancluster size:                15.7
+Dependence structure:         Exchangeable   Num.iterations:                     7
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         11:45:35
+==================================================================================
+                     coef    std err          z   P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept         -1.3451      0.100    -13.505   0.000      -1.540      -1.150
+episode_scaled    -0.0054      0.023     -0.238   0.812      -0.050       0.039
+spline_1           0.0484      0.025      1.939   0.052      -0.001       0.097
+==============================================================================
+Skew:                          1.0086   Kurtosis:                     -0.9150
+Centered skew:                 0.8218   Centered kurtosis:             -0.6407
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept         0.260507
+episode_scaled    0.994639
+spline_1          1.049596
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 27963.132
+Found Optimal Knot: 564
+Working Correlation (Alpha): 0.0634
+
+=================================================================
+MODEL STATISTICS: One Knot (Manual - Stalingrad)
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:               is_individual   No. Observations:                24233
+Model:                                 GEE   No. clusters:                     1548
+Method:                        Generalized   Min.cluster size:                   1
+                      Estimating Equations   Max.cluster size:                 147
+Family:                           Binomial   Meancluster size:                15.7
+Dependence structure:         Exchangeable   Num.iterations:                     7
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         11:45:35
+==================================================================================
+                     coef    std err          z   P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept         -1.4332      0.064    -22.281   0.000      -1.559      -1.307
+episode_scaled     0.0256      0.007      3.641   0.000       0.012       0.039
+spline_1           0.0290      0.015      1.985   0.047       0.000       0.058
+==============================================================================
+Skew:                          1.0088   Kurtosis:                     -0.9130
+Centered skew:                 0.8218   Centered kurtosis:             -0.6407
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept         0.238540
+episode_scaled    1.025963
+spline_1          1.029439
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 27963.346
+Found Optimal Knot: 648
+Working Correlation (Alpha): 0.0635
+
+=================================================================
+MODEL STATISTICS: One Knot (Automated Best)
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:               is_individual   No. Observations:                24233
+Model:                                 GEE   No. clusters:                     1548
+Method:                        Generalized   Min.cluster size:                   1
+                      Estimating Equations   Max.cluster size:                 147
+Family:                           Binomial   Meancluster size:                15.7
+Dependence structure:         Exchangeable   Num.iterations:                     7
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         11:45:35
+==================================================================================
+                     coef    std err          z   P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept         -1.3947      0.072    -19.302   0.000      -1.536      -1.253
+episode_scaled     0.0177      0.010      1.825   0.068      -0.001       0.037
+spline_1           0.0335      0.015      2.224   0.026       0.004       0.063
+==============================================================================
+Skew:                          1.0083   Kurtosis:                     -0.9126
+Centered skew:                 0.8218   Centered kurtosis:             -0.6407
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept         0.247903
+episode_scaled    1.017816
+spline_1          1.034057
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 27956.525
+Found Optimal Knot: 619
+Working Correlation (Alpha): 0.0630
+
+MODEL COMPARISON (Ranked by QIC)
+-----------------------------------------------------------------
+                    Model Name       QIC  delta_QIC
+     One Knot (Automated Best) 27956.525      0.000
+                     Quadratic 27960.981      4.456
+One Knot (Manual - Barbarossa) 27963.132      6.606
+One Knot (Manual - Stalingrad) 27963.346      6.821
+             Linear (No Knots) 27971.085     14.559
+                    Null Model 28347.677    391.151
+
+Best model based on QIC: One Knot (Automated Best)
+
+
+=================================================================
+ANALYSIS: SOLDIER CLASSIFICATION (COLLECTIVE VS OTHER SOLDIER DEPICTION)
+=================================================================
+
+--- Baseline Working Correlations (GEE 'ICC' Equivalent) ---
+Episode-level Working Correlation: 0.0826
+Chapter-level Working Correlation: 0.2399
+
+--- Running GEE Configurations ---
+
+--- Searching for Optimal Breakpoint ---
+Best one-knot GEE: episode 561, QIC = 26663.60
+
+=================================================================
+MODEL STATISTICS: Null Model
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:               is_collective   No. Observations:                24233
+Model:                                 GEE   No. clusters:                     1548
+Method:                        Generalized   Min.cluster size:                   1
+                      Estimating Equations   Max.cluster size:                 147
+Family:                           Binomial   Meancluster size:                15.7
+Dependence structure:         Exchangeable   Num.iterations:                     8
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         11:51:47
+==============================================================================
+                 coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+Intercept     -0.9162      0.034    -26.793      0.000      -0.983      -0.849
+==============================================================================
+Skew:                          1.1900   Kurtosis:                     -0.5839
+Centered skew:                 0.8801   Centered kurtosis:              0.6308
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept    0.400046
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 27160.679
+Working Correlation (Alpha): 0.2399
+
+=================================================================
+MODEL STATISTICS: Linear (No Knots)
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:               is_collective   No. Observations:                24233
+Model:                                 GEE   No. clusters:                     1548
+Method:                        Generalized   Min.cluster size:                   1
+                      Estimating Equations   Max.cluster size:                 147
+Family:                           Binomial   Meancluster size:                15.7
+Dependence structure:         Exchangeable   Num.iterations:                     9
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         11:51:48
+==================================================================================
+                     coef    std err          z   P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept         -0.5345      0.063     -8.467   0.000      -0.658      -0.411
+episode_scaled    -0.0337      0.005     -7.184   0.000      -0.043      -0.025
+==============================================================================
+Skew:                          1.1710   Kurtosis:                     -0.5673
+Centered skew:                 0.8801   Centered kurtosis:              0.6308
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept         0.585973
+episode_scaled    0.966857
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 26696.732
+Working Correlation (Alpha): 0.2162
+
+=================================================================
+MODEL STATISTICS: Quadratic
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:               is_collective   No. Observations:                24233
+Model:                                 GEE   No. clusters:                     1548
+Method:                        Generalized   Min.cluster size:                   1
+                      Estimating Equations   Max.cluster size:                 147
+Family:                           Binomial   Meancluster size:                15.7
+Dependence structure:         Exchangeable   Num.iterations:                    10
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         11:51:48
+==========================================================================================
+                             coef    std err    z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------------------
+Intercept                 -0.5054      0.096     -5.276      0.000      -0.693      -0.318
+episode_scaled            -0.0414      0.019     -2.125      0.034      -0.080      -0.003
+I(episode_scaled ** 2)     0.0003      0.0010.412      0.680      -0.001       0.002
+==============================================================================
+Skew:                          1.1715   Kurtosis:                     -0.5660
+Centered skew:                 0.8801   Centered kurtosis:              0.6308
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept                 0.603261
+episode_scaled            0.959475
+I(episode_scaled ** 2)    1.000323
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 26690.671
+Working Correlation (Alpha): 0.2157
+
+=================================================================
+MODEL STATISTICS: One Knot (Manual - Barbarossa)
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:               is_collective   No. Observations:                24233
+Model:                                 GEE   No. clusters:                     1548
+Method:                        Generalized   Min.cluster size:                   1
+                      Estimating Equations   Max.cluster size:                 147
+Family:                           Binomial   Meancluster size:                15.7
+Dependence structure:         Exchangeable   Num.iterations:                     9
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         11:51:48
+==================================================================================
+                     coef    std err          z   P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept         -0.3039      0.115     -2.639   0.008      -0.530      -0.078
+episode_scaled    -0.0965      0.027     -3.592   0.000      -0.149      -0.044
+spline_1           0.0719      0.030      2.381   0.017       0.013       0.131
+==============================================================================
+Skew:                          1.1729   Kurtosis:                     -0.5586
+Centered skew:                 0.8801   Centered kurtosis:              0.6308
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept         0.737956
+episode_scaled    0.908036
+spline_1          1.074517
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 26663.832
+Found Optimal Knot: 564
+Working Correlation (Alpha): 0.2150
+
+=================================================================
+MODEL STATISTICS: One Knot (Manual - Stalingrad)
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:               is_collective   No. Observations:                24233
+Model:                                 GEE   No. clusters:                     1548
+Method:                        Generalized   Min.cluster size:                   1
+                      Estimating Equations   Max.cluster size:                 147
+Family:                           Binomial   Meancluster size:                15.7
+Dependence structure:         Exchangeable   Num.iterations:                     9
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         11:51:48
+==================================================================================
+                     coef    std err          z   P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept         -0.5221      0.080     -6.550   0.000      -0.678      -0.366
+episode_scaled    -0.0358      0.010     -3.707   0.000      -0.055      -0.017
+spline_1           0.0056      0.021      0.260   0.795      -0.036       0.047
+==============================================================================
+Skew:                          1.1712   Kurtosis:                     -0.5666
+Centered skew:                 0.8801   Centered kurtosis:              0.6308
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept         0.593263
+episode_scaled    0.964803
+spline_1          1.005568
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 26693.092
+Found Optimal Knot: 648
+Working Correlation (Alpha): 0.2159
+
+=================================================================
+MODEL STATISTICS: One Knot (Automated Best)
+=================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:               is_collective   No. Observations:                24233
+Model:                                 GEE   No. clusters:                     1548
+Method:                        Generalized   Min.cluster size:                   1
+                      Estimating Equations   Max.cluster size:                 147
+Family:                           Binomial   Meancluster size:                15.7
+Dependence structure:         Exchangeable   Num.iterations:                     9
+Date:                     Thu, 05 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         11:51:49
+==================================================================================
+                     coef    std err          z   P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept         -0.2899      0.117     -2.469   0.014      -0.520      -0.060
+episode_scaled    -0.1029      0.029     -3.583   0.000      -0.159      -0.047
+spline_1           0.0781      0.032      2.446   0.014       0.016       0.141
+==============================================================================
+Skew:                          1.1729   Kurtosis:                     -0.5583
+Centered skew:                 0.8801   Centered kurtosis:              0.6308
+==============================================================================
+-----------------------------------------------------------------
+ODDS RATIOS:
+Intercept         0.748312
+episode_scaled    0.902191
+spline_1          1.081238
+dtype: float64
+-----------------------------------------------------------------
+QIC (Model Fit Criterion): 26663.600
+Found Optimal Knot: 561
+Working Correlation (Alpha): 0.2151
+
+MODEL COMPARISON (Ranked by QIC)
+-----------------------------------------------------------------
+                    Model Name       QIC  delta_QIC
+     One Knot (Automated Best) 26663.600      0.000
+One Knot (Manual - Barbarossa) 26663.832      0.232
+                     Quadratic 26690.671     27.071
+One Knot (Manual - Stalingrad) 26693.092     29.492
+             Linear (No Knots) 26696.732     33.132
+                    Null Model 27160.679    497.079
+
+Best model based on QIC: One Knot (Automated Best)

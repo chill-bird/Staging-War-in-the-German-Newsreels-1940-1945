@@ -52,7 +52,7 @@ palette[1945] = "gold"  # Override 1945
 
 
 def plot_word_counts_per_episode_automated_best_knot(
-    df: pd.DataFrame, linear_model, spline_model, knot: int
+    df: pd.DataFrame, quadratic_model, spline_model, knot: int
 ):
     """Creates plot for word counts per episode"""
 
@@ -67,10 +67,15 @@ def plot_word_counts_per_episode_automated_best_knot(
     )
     x_centered = x_grid - episode_origin
 
-    linear_fe = linear_model.fe_params
-    linear_intercept = linear_fe["Intercept"]
-    linear_slope = linear_fe["episode_shifted"]
-    y_linear = linear_intercept + linear_slope * x_centered
+    quadratic_fe = quadratic_model.fe_params
+    quadratic_intercept = quadratic_fe["Intercept"]
+    quadratic_slope = quadratic_fe["episode_shifted"]
+    quadratic_term = quadratic_fe["I(episode_shifted ** 2)"]
+    y_quadratic = (
+        quadratic_intercept
+        + quadratic_slope * x_centered
+        + quadratic_term * x_centered**2
+    )
 
     spline_fe = spline_model.fe_params
     spline_intercept = spline_fe["Intercept"]
@@ -99,15 +104,15 @@ def plot_word_counts_per_episode_automated_best_knot(
         s=30,
         ax=ax,
     )
-    # Linear
+    # Quadratic
     ax.plot(
         x_grid,
-        y_linear,
+        y_quadratic,
         color="black",
         linewidth=2,
-        linestyle="--",
+        linestyle="-",
         zorder=4,
-        label="Linear Mixed Model",
+        label="Quadratic Model",
     )
     # Piecewise mixed-effects model: solid line
     ax.plot(
@@ -115,9 +120,9 @@ def plot_word_counts_per_episode_automated_best_knot(
         y_spline,
         color="black",
         linewidth=2.2,
-        linestyle="-",
+        linestyle="--",
         zorder=5,
-        label="Piecewise Linear Mixed Model",
+        label="Piecewise Linear Model",
     )
     # 95% confidence band (only for the continuous piecewise line)
     ax.fill_between(
@@ -279,15 +284,15 @@ def plot_shot_durations_per_episode_automated_best_knot(
         label="Linear Mixed Model",
     )
     # Piecewise mixed-effects model: dashed line
-    ax.plot(
-        x_grid,
-        y_spline,
-        color="black",
-        linewidth=2.2,
-        linestyle="--",
-        zorder=5,
-        label="Piecewise Linear Mixed Model",
-    )
+    # ax.plot(
+    #     x_grid,
+    #     y_spline,
+    #     color="black",
+    #     linewidth=2.2,
+    #     linestyle="--",
+    #     zorder=5,
+    #     label="Piecewise Linear Mixed Model",
+    # )
     # 95% confidence band (only for the continuous linear line)
     ax.fill_between(
         x_grid, linear_lo, linear_hi, color="grey", alpha=0.25, linewidth=0, zorder=3
