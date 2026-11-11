@@ -14,6 +14,7 @@ import pandas as pd
 import seaborn as sns
 from matplotlib import font_manager
 from PIL import Image
+from statsmodels.graphics.gofplots import qqplot
 from tueplots import bundles
 
 # from tueplots import figsizes
@@ -51,31 +52,37 @@ palette = dict(zip(years, sns.color_palette("tab20", len(years))))
 palette[1945] = "gold"  # Override 1945
 
 
+def plot_residual_qq(residuals: np.ndarray, title: str):
+    """Plot conditional residuals against normal quantiles on the fitted scale."""
+    fig, ax = plt.subplots(figsize=(4, 4))
+    qqplot(residuals, line="s", ax=ax)
+    ax.set_xlabel("Theoretical normal quantiles")
+    ax.set_ylabel("Conditional residual quantiles (model scale)")
+    ax.set_title(title)
+    return fig, ax
+
+
 def plot_word_counts_per_episode_automated_best_knot(
-    df: pd.DataFrame, quadratic_model, spline_model, knot: int
+    df: pd.DataFrame, quadratic_model, spline_model, knot: int, episode_scale: float
 ):
-    """Creates plot for word counts per episode"""
+    """Plot observed WPM and back-transformed log-WPM model predictions."""
 
     plot_df = df.sort_values(["episode", "chapter"]).reset_index(drop=True)
     model_df = spline_model.model.data.frame
-    episode_origin = float((model_df["episode"] - model_df["episode_shifted"]).iloc[0])
+    episode_min = model_df["episode"].min()
 
     x_grid = np.linspace(
         plot_df["episode"].min(),
         plot_df["episode"].max(),
         500,
     )
-    x_centered = x_grid - episode_origin
+    x_scaled = (x_grid - episode_min) / episode_scale
 
     quadratic_fe = quadratic_model.fe_params
     quadratic_intercept = quadratic_fe["Intercept"]
     quadratic_slope = quadratic_fe["episode_shifted"]
     quadratic_term = quadratic_fe["I(episode_shifted ** 2)"]
-    y_quadratic = (
-        quadratic_intercept
-        + quadratic_slope * x_centered
-        + quadratic_term * x_centered**2
-    )
+    y_quadratic = quadratic_intercept + quadratic_slope * x_scaled + quadratic_term * x_scaled**2
 
     spline_fe = spline_model.fe_params
     spline_intercept = spline_fe["Intercept"]
@@ -83,13 +90,18 @@ def plot_word_counts_per_episode_automated_best_knot(
     spline_change = spline_fe["spline_1"]
     # Post-breakpoint slope
     spline_post_slope = spline_slope + spline_change
-    spline_1 = np.maximum(x_grid - knot, 0)
-    y_spline = spline_intercept + spline_slope * x_centered + spline_change * spline_1
+    knot_scaled = (knot - episode_min) / episode_scale
+    spline_1 = np.maximum(x_scaled - knot_scaled, 0)
+    y_spline = spline_intercept + spline_slope * x_scaled + spline_change * spline_1
     spline_lo, spline_hi = _fixed_effect_ci(
         spline_model,
-        np.column_stack([np.ones_like(x_grid), x_centered, spline_1]),
+        np.column_stack([np.ones_like(x_grid), x_scaled, spline_1]),
         y_spline,
     )
+
+    # Back-transform the log-scale fits and confidence bounds to WPM.
+    y_quadratic = np.exp(y_quadratic)
+    y_spline, spline_lo, spline_hi = np.exp([y_spline, spline_lo, spline_hi])
 
     fig, ax = plt.subplots(figsize=(4, 4))
 
@@ -125,9 +137,7 @@ def plot_word_counts_per_episode_automated_best_knot(
         label="Piecewise Linear Model",
     )
     # 95% confidence band (only for the continuous piecewise line)
-    ax.fill_between(
-        x_grid, spline_lo, spline_hi, color="grey", alpha=0.25, linewidth=0, zorder=3
-    )
+    ax.fill_between(x_grid, spline_lo, spline_hi, color="grey", alpha=0.25, linewidth=0, zorder=3)
 
     # Vertical lines for years
     year_positions = df.groupby("year")["episode"].min()
@@ -201,6 +211,7 @@ def plot_shot_durations_per_episode_automated_best_knot(
     linear_model,
     spline_model,
     knot: int,
+    episode_scale: float,
     aggregate_by_chapter: bool = False,
     y_max: float = 20,
 ):
@@ -214,19 +225,19 @@ def plot_shot_durations_per_episode_automated_best_knot(
     """
     plot_df = df.sort_values(["episode", "chapter"]).reset_index(drop=True)
     model_df = spline_model.model.data.frame
-    episode_origin = float((model_df["episode"] - model_df["episode_shifted"]).iloc[0])
+    episode_min = model_df["episode"].min()
 
     x_grid = np.linspace(
         plot_df["episode"].min(),
         plot_df["episode"].max(),
         500,
     )
-    x_centered = x_grid - episode_origin
+    x_scaled = (x_grid - episode_min) / episode_scale
 
     linear_fe = linear_model.fe_params
     linear_intercept = linear_fe["Intercept"]
     linear_slope = linear_fe["episode_shifted"]
-    y_linear = linear_intercept + linear_slope * x_centered
+    y_linear = linear_intercept + linear_slope * x_scaled
 
     spline_fe = spline_model.fe_params
     spline_intercept = spline_fe["Intercept"]
@@ -234,13 +245,14 @@ def plot_shot_durations_per_episode_automated_best_knot(
     spline_change = spline_fe["spline_1"]
     # Post-breakpoint slope
     spline_post_slope = spline_slope + spline_change
-    spline_1 = np.maximum(x_grid - knot, 0)
-    y_spline = spline_intercept + spline_slope * x_centered + spline_change * spline_1
+    knot_scaled = (knot - episode_min) / episode_scale
+    spline_1 = np.maximum(x_scaled - knot_scaled, 0)
+    y_spline = spline_intercept + spline_slope * x_scaled + spline_change * spline_1
 
     # 95% CI of the fixed-effects line on the log scale
     ones = np.ones_like(x_grid)
     linear_lo, linear_hi = _fixed_effect_ci(
-        linear_model, np.column_stack([ones, x_centered]), y_linear
+        linear_model, np.column_stack([ones, x_scaled]), y_linear
     )
 
     # Models were fitted on log(duration): back-transform to seconds
@@ -294,9 +306,7 @@ def plot_shot_durations_per_episode_automated_best_knot(
     #     label="Piecewise Linear Mixed Model",
     # )
     # 95% confidence band (only for the continuous linear line)
-    ax.fill_between(
-        x_grid, linear_lo, linear_hi, color="grey", alpha=0.25, linewidth=0, zorder=3
-    )
+    ax.fill_between(x_grid, linear_lo, linear_hi, color="grey", alpha=0.25, linewidth=0, zorder=3)
 
     # Vertical lines for years
     year_positions = df.groupby("year")["episode"].min()

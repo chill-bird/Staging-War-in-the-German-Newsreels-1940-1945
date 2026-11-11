@@ -13,6 +13,7 @@ import warnings
 from pathlib import Path
 from typing import Literal
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
@@ -20,6 +21,7 @@ from scipy.stats import chi2
 from statsmodels.stats.diagnostic import acorr_ljungbox
 
 from src.analysis.lmm_analysis_plots import (
+    plot_residual_qq,
     plot_shot_durations_per_episode_automated_best_knot,
     plot_word_counts_per_episode_automated_best_knot,
 )
@@ -37,6 +39,7 @@ from src.util import (
 FIG_WORD_COUNTS_FILE = Path(DOC_DIR / "imgs" / "word_counts_lmm.pdf").resolve()
 FIG_SHOT_DURATION_FILE = Path(DOC_DIR / "imgs" / "shot_duration_lmm.pdf").resolve()
 KNOT_SEARCH_RESULTS_DIR = Path(Path(__file__).parent.resolve() / "knot_search_results").resolve()
+EPISODE_SCALE = 10.0
 
 DF = get_filtered_chapters_df("combat")
 KEYFRAMES_DF = pd.read_csv(KEYFRAME_CLASSIFICATION_TSV, sep="\t")
@@ -78,7 +81,7 @@ def _prepare_data(
         data = data.dropna(subset=["episode", feature, group_by])
 
     episode_min = data["episode"].min()
-    data["episode_shifted"] = data["episode"] - episode_min
+    data["episode_shifted"] = (data["episode"] - episode_min) / EPISODE_SCALE
     data = data.reset_index(drop=True)
     return data
 
@@ -234,7 +237,8 @@ def fit_lmm_one_knot(
     extra_cols: list | None = None,
 ):
     data = _prepare_data(df, feature, group_by, extra_cols)
-    data["spline_1"] = np.maximum(0, data["episode_shifted"] - (knot - data["episode"].min()))
+    knot_shifted = (knot - data["episode"].min()) / EPISODE_SCALE
+    data["spline_1"] = np.maximum(0, data["episode_shifted"] - knot_shifted)
 
     model = smf.mixedlm(
         f"{feature} ~ episode_shifted + spline_1",
@@ -257,8 +261,10 @@ def fit_lmm_two_knots(
 ):
     data = _prepare_data(df, feature, group_by, extra_cols)
     episode_min = data["episode"].min()
-    data["spline_1"] = np.maximum(0, data["episode_shifted"] - (knot_1 - episode_min))
-    data["spline_2"] = np.maximum(0, data["episode_shifted"] - (knot_2 - episode_min))
+    knot_1_shifted = (knot_1 - episode_min) / EPISODE_SCALE
+    knot_2_shifted = (knot_2 - episode_min) / EPISODE_SCALE
+    data["spline_1"] = np.maximum(0, data["episode_shifted"] - knot_1_shifted)
+    data["spline_2"] = np.maximum(0, data["episode_shifted"] - knot_2_shifted)
 
     model = smf.mixedlm(
         f"{feature} ~ episode_shifted + spline_1 + spline_2",
@@ -528,12 +534,30 @@ def _prepare_shot_duration_data(df: pd.DataFrame) -> pd.DataFrame:
     return data
 
 
-def _diagnose_selected_model(models: dict, title_prefix: str) -> None:
+def _diagnose_selected_model(
+    models: dict, title_prefix: str, qq_figure_file: Path, selected_name: str
+) -> None:
     best_model = compare_and_select_best_model(models)
     if best_model is None:
         raise RuntimeError("No candidate model successfully converged.")
-    model_name = _get_model_name(models, best_model)
-    diagnose_lmm(best_model, title=f"{title_prefix}: {model_name}")
+    selected_model = models[selected_name]
+    if selected_model is None:
+        raise RuntimeError(f"Selected model did not converge: {selected_name}")
+
+    for label, model, model_name in (
+        ("best", best_model, _get_model_name(models, best_model)),
+        ("selected", selected_model, selected_name),
+    ):
+        residual_data = diagnose_lmm(model, title=f"{title_prefix}: {model_name}")
+        fig, _ = plot_residual_qq(
+            residual_data["residual"].to_numpy(), title=f"{title_prefix}\n{model_name}"
+        )
+        output_file = qq_figure_file.with_name(f"{qq_figure_file.name}_{label}.pdf")
+        try:
+            fig.savefig(output_file)
+        finally:
+            plt.close(fig)
+        print("Residual Q-Q plot saved.")
 
 
 def _analyze_feature(
@@ -587,7 +611,9 @@ def _analyze_feature(
     for name, model in models.items():
         print_model_statistics(model, name)
 
-    _diagnose_selected_model(models, diagnosis_title)
+    selected_model = "Quadratic" if plot_baseline == "quadratic" else "Linear (No Knots)"
+    qq_figure_file_pre = figure_file.with_name(f"{figure_file.stem}_qq")
+    _diagnose_selected_model(models, diagnosis_title, qq_figure_file_pre, selected_model)
 
     likelihood_test = likelihood_ratio_test(m_linear, m_one_knot_stalingrad, df_diff=1)
     print("\nLikelihood-ratio test (linear vs. Stalingrad knot):")
@@ -599,6 +625,7 @@ def _analyze_feature(
         plot_model,
         m_one_knot_auto,
         knot,
+        episode_scale=EPISODE_SCALE,
         **(plot_kwargs or {}),
     )
     fig.savefig(figure_file)
@@ -614,10 +641,13 @@ def analyze_word_counts() -> None:
     ].apply(count_words)
     df["duration_sec"] = df.apply(get_duration_sec, axis=1)
     df["word_count_per_minute"] = df.apply(words_per_minute, axis=1)
+    df["word_count_per_minute"] = df.apply(words_per_minute, axis=1)
+    df["log_word_count_per_minute"] = np.log(df["word_count_per_minute"])
+    # df["log_word_count_per_minute"] = df["word_count_per_minute"]
 
     _analyze_feature(
         df=df,
-        feature="word_count_per_minute",
+        feature="log_word_count_per_minute",
         analysis_title="WORD COUNT PER MINUTE",
         diagnosis_title="WPM",
         plot_function=plot_word_counts_per_episode_automated_best_knot,
@@ -629,6 +659,7 @@ def analyze_word_counts() -> None:
 
 def analyze_shot_durations() -> None:
     df = _prepare_shot_duration_data(DF)
+    print(f"Number of chapters to analyze: {df['chapter_uid'].nunique()}")
     variance_components = {"chapter_uid": "0 + C(chapter_uid)"}
     extra_cols = ["chapter_uid"]
 
@@ -647,7 +678,7 @@ def analyze_shot_durations() -> None:
 
 
 def main() -> None:
-    analyze_word_counts()
+    # analyze_word_counts()
     analyze_shot_durations()
 
 
