@@ -21,10 +21,10 @@ from scipy.stats import chi2
 from statsmodels.stats.diagnostic import acorr_ljungbox
 
 from src.analysis.lmm_analysis_plots import (
-    plot_residual_qq,
     plot_shot_durations_per_episode_automated_best_knot,
     plot_word_counts_per_episode_automated_best_knot,
 )
+from src.analysis.residual_plots import RESIDUALS_DIR, plot_residual_qq
 from src.util import (
     DOC_DIR,
     KEYFRAME_CLASSIFICATION_TSV,
@@ -544,6 +544,7 @@ def _diagnose_selected_model(
     if selected_model is None:
         raise RuntimeError(f"Selected model did not converge: {selected_name}")
 
+    qq_figure_file.parent.mkdir(parents=True, exist_ok=True)
     for label, model, model_name in (
         ("best", best_model, _get_model_name(models, best_model)),
         ("selected", selected_model, selected_name),
@@ -557,7 +558,7 @@ def _diagnose_selected_model(
             fig.savefig(output_file)
         finally:
             plt.close(fig)
-        print("Residual Q-Q plot saved.")
+        print(f"Residual Q-Q plot saved to: {output_file}")
 
 
 def _analyze_feature(
@@ -612,7 +613,7 @@ def _analyze_feature(
         print_model_statistics(model, name)
 
     selected_model = "Quadratic" if plot_baseline == "quadratic" else "Linear (No Knots)"
-    qq_figure_file_pre = figure_file.with_name(f"{figure_file.stem}_qq")
+    qq_figure_file_pre = RESIDUALS_DIR / f"{figure_file.stem}_qq"
     _diagnose_selected_model(models, diagnosis_title, qq_figure_file_pre, selected_model)
 
     likelihood_test = likelihood_ratio_test(m_linear, m_one_knot_stalingrad, df_diff=1)

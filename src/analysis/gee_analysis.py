@@ -11,15 +11,18 @@ Generalized Estimating Equations (GEE) Logistic Models for binary classification
 import warnings
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
+from scipy.stats import norm
 
 from src.analysis.gee_analysis_plots import (
     plot_depiction_ratio_per_episode,
     plot_shot_scale_per_episode,
 )
+from src.analysis.residual_plots import RESIDUALS_DIR, plot_residual_qq
 from src.util import (
     DOC_DIR,
     KEYFRAME_CLASSIFICATION_TSV,
@@ -43,6 +46,7 @@ SIMILARITY_THRESHOLD_SHOT_SCALE = 0.165
 SIMILARITY_THRESHOLD_SOLDIERS = 0.17
 
 EPISODE_SCALE = 10.0
+QQ_RANDOM_SEED = 42
 
 # Key events
 MANUAL_KNOTS = {
@@ -211,6 +215,26 @@ def compare_and_select_best_model(models_dict: dict):
     return models_dict[best_name]
 
 
+def randomized_quantile_residuals(model, seed: int = QQ_RANDOM_SEED) -> np.ndarray:
+    """Randomized marginal quantile residuals for a fitted Bernoulli GEE."""
+    outcomes = np.asarray(model.model.endog)
+    probabilities = np.asarray(model.fittedvalues)
+    if outcomes.ndim != 1 or probabilities.shape != outcomes.shape or outcomes.size == 0:
+        raise ValueError("Binary outcomes and fitted probabilities must be nonempty aligned vectors.")
+    if not np.all(np.isin(outcomes, [0, 1])):
+        raise ValueError("Randomized quantile residuals require binary 0/1 outcomes.")
+    if not np.all(np.isfinite(probabilities) & (probabilities >= 0) & (probabilities <= 1)):
+        raise ValueError("Fitted probabilities must be finite and between 0 and 1.")
+
+    lower = np.where(outcomes == 0, 0.0, 1.0 - probabilities)
+    width = np.where(outcomes == 0, 1.0 - probabilities, probabilities)
+    if np.any(width <= 0):
+        raise ValueError("An observed outcome has zero fitted probability.")
+    uniforms = lower + width * np.random.default_rng(seed).random(outcomes.size)
+    uniforms = np.clip(uniforms, np.nextafter(0.0, 1.0), np.nextafter(1.0, 0.0))
+    return norm.ppf(uniforms)
+
+
 # -----------------------------------------------------------------
 # Feature Helpers & Data Prep
 # -----------------------------------------------------------------
@@ -315,7 +339,11 @@ def prepare_soldiers_keyframe_data(
 
 
 def analyze_binary_classification(
-    data: pd.DataFrame, target_col: str, analysis_title: str, group_by: str = "chapter_uid"
+    data: pd.DataFrame,
+    target_col: str,
+    analysis_title: str,
+    selected_models: dict[str, str],
+    group_by: str = "chapter_uid",
 ):
     """
     Main orchestration function to run the full suite of GEE models on a binary outcome.
@@ -359,7 +387,34 @@ def analyze_binary_classification(
     for name, model in models.items():
         print_model_statistics(model, name)
 
-    compare_and_select_best_model(models)
+    best_model = compare_and_select_best_model(models)
+    if best_model is None:
+        raise RuntimeError("No candidate GEE model successfully converged.")
+    best_name = next(name for name, model in models.items() if model is best_model)
+    qq_models = [("best", best_name, best_model)]
+    for label, name in selected_models.items():
+        model = models[name]
+        if model is None:
+            raise RuntimeError(f"Selected GEE model did not converge: {name}")
+        qq_models.append((label, name, model))
+
+    RESIDUALS_DIR.mkdir(parents=True, exist_ok=True)
+    print(
+        f"GEE marginal randomized quantile residuals use seed {QQ_RANDOM_SEED}; "
+        "within-cluster dependence remains."
+    )
+    for label, name, model in qq_models:
+        fig, _ = plot_residual_qq(
+            randomized_quantile_residuals(model),
+            title=f"{target_col}\n{name}",
+            ylabel="Randomized quantile residuals",
+        )
+        output_file = RESIDUALS_DIR / f"{target_col}_gee_qq_{label}.pdf"
+        try:
+            fig.savefig(output_file)
+        finally:
+            plt.close(fig)
+        print(f"Residual Q-Q plot saved to: {output_file}")
 
     if results_df is not None:
         filename = Path(KNOT_SEARCH_RESULTS_DIR / f"{target_col}_knot_search_results.csv").resolve()
@@ -384,6 +439,7 @@ def analyze_shot_scale():
         data=data,
         target_col="is_close",
         analysis_title="Shot Scale (Close-Ups vs Rest)",
+        selected_models={"selected": BARBAROSSA_MODEL},
         group_by="chapter_uid",
     )
 
@@ -393,6 +449,7 @@ def analyze_shot_scale():
         data=data,
         target_col="is_long",
         analysis_title="Shot Scale (Long Shots vs Rest)",
+        selected_models={"selected": BARBAROSSA_MODEL},
         group_by="chapter_uid",
     )
 
@@ -420,6 +477,10 @@ def analyze_soldier_depictions():
         data=data,
         target_col="is_individual",
         analysis_title="Soldier Classification (Individual vs Other Soldier Depiction)",
+        selected_models={
+            "selected_spline": "One Knot (Automated Best)",
+            "selected_quadratic": "Quadratic",
+        },
         group_by="chapter_uid",
     )
 
@@ -429,6 +490,7 @@ def analyze_soldier_depictions():
         data=data,
         target_col="is_collective",
         analysis_title="Soldier Classification (Collective vs Other Soldier Depiction)",
+        selected_models={"selected": BARBAROSSA_MODEL},
         group_by="chapter_uid",
     )
 

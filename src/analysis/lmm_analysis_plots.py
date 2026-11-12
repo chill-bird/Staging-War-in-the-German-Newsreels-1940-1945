@@ -14,7 +14,6 @@ import pandas as pd
 import seaborn as sns
 from matplotlib import font_manager
 from PIL import Image
-from statsmodels.graphics.gofplots import qqplot
 from tueplots import bundles
 
 # from tueplots import figsizes
@@ -50,16 +49,6 @@ plt.rcParams.update(
 years = [1940, 1941, 1942, 1943, 1944, 1945]
 palette = dict(zip(years, sns.color_palette("tab20", len(years))))
 palette[1945] = "gold"  # Override 1945
-
-
-def plot_residual_qq(residuals: np.ndarray, title: str):
-    """Plot conditional residuals against normal quantiles on the fitted scale."""
-    fig, ax = plt.subplots(figsize=(4, 4))
-    qqplot(residuals, line="s", ax=ax)
-    ax.set_xlabel("Theoretical normal quantiles")
-    ax.set_ylabel("Conditional residual quantiles (model scale)")
-    ax.set_title(title)
-    return fig, ax
 
 
 def plot_word_counts_per_episode_automated_best_knot(
