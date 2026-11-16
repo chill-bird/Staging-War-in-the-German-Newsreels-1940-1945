@@ -21,6 +21,7 @@ LINEAR = "Linear"
 QUADRATIC = "Quadratic"
 BARBAROSSA = "Barbarossa"
 STALINGRAD = "Stalingrad"
+AUTOMATED_KNOT = "Automated knot"
 GROUPING_LEVELS = (CHAPTER_GROUPING, NESTED_GROUPING)
 
 
@@ -171,7 +172,7 @@ def fit_gee_model(
 
 
 def fit_one_knot_model(
-    data: pd.DataFrame, outcome: str, knot: int, family: str, grouping_level: str = CHAPTER_GROUPING
+    data: pd.DataFrame, outcome: str, knot: float, family: str, grouping_level: str = CHAPTER_GROUPING
 ):
     data = data.copy()
     knot_scaled = (knot - data["episode"].min()) / EPISODE_SCALE
@@ -184,9 +185,11 @@ def fit_one_knot_model(
 def fit_models(
     data: pd.DataFrame, outcome: str, family: str, grouping_level: str = CHAPTER_GROUPING
 ) -> dict:
-    """Fit the four prespecified time trends on the same observations."""
-    return {
-        LINEAR: fit_gee_model(data, outcome, "episode_scaled", family, grouping_level),
+    """Fit prespecified trends and an exploratory QIC-selected one-knot trend."""
+    linear = fit_gee_model(data, outcome, "episode_scaled", family, grouping_level)
+    scale = common_qic_scale(linear, family)
+    models = {
+        LINEAR: linear,
         QUADRATIC: fit_gee_model(
             data, outcome, "episode_scaled + I(episode_scaled ** 2)", family, grouping_level
         ),
@@ -197,6 +200,19 @@ def fit_models(
             data, outcome, MANUAL_KNOTS[STALINGRAD], family, grouping_level
         ),
     }
+    best_model, _, search_table = find_best_model_one_knot(
+        data, outcome, family, scale, grouping_level=grouping_level
+    )
+    best_model.knot_search_results = search_table
+    models[AUTOMATED_KNOT] = best_model
+    return models
+
+
+def common_qic_scale(linear_model, family: str) -> float:
+    scale = 1.0 if family == "binomial" else float(linear_model.scale)
+    if not np.isfinite(scale) or scale <= 0:
+        raise ValueError("The common QIC scale must be finite and positive.")
+    return scale
 
 
 def model_qic(model, scale: float) -> float:
@@ -217,25 +233,32 @@ def find_best_model_one_knot(
     """Search observed knots, retaining at least the requested episodes on each side."""
     if min_episodes_per_segment < 1:
         raise ValueError("min_episodes_per_segment must be positive.")
+    if not np.isfinite(scale) or scale <= 0:
+        raise ValueError("The common QIC scale must be finite and positive.")
     episodes = np.sort(data["episode"].unique())
     candidates = episodes[min_episodes_per_segment:-min_episodes_per_segment]
     if len(candidates) == 0:
         raise ValueError("Not enough distinct episodes for the requested knot search.")
     results = []
+    best_model = None
+    best_knot = None
+    best_qic = float("inf")
     for knot in candidates:
+        knot = knot.item() if isinstance(knot, np.generic) else knot
         try:
-            model = fit_one_knot_model(data, outcome, int(knot), family, grouping_level)
+            model = fit_one_knot_model(data, outcome, knot, family, grouping_level)
             qic = model_qic(model, scale)
         except (ValueError, RuntimeError, np.linalg.LinAlgError) as exc:
             print(f"Skipping knot {knot}: {exc}")
             continue
-        results.append({"knot": int(knot), "QIC": qic, "model": model})
+        results.append({"knot": knot, "QIC": qic})
+        if qic < best_qic:
+            best_model, best_knot, best_qic = model, knot, qic
     if not results:
         raise RuntimeError("No candidate knot produced a valid converged model.")
-    best = min(results, key=lambda row: row["QIC"])
-    table = pd.DataFrame(results).drop(columns="model").sort_values("QIC").reset_index(drop=True)
+    table = pd.DataFrame(results).sort_values(["QIC", "knot"]).reset_index(drop=True)
     table["delta_QIC"] = table["QIC"] - table["QIC"].min()
-    return best["model"], best["knot"], table
+    return best_model, best_knot, table
 
 
 class _Tee:
@@ -281,7 +304,7 @@ def observation_unit(outcome: str, grouping_level: str) -> str:
 def analyze_outcome(
     data: pd.DataFrame, outcome: str, family: str, grouping_level: str = CHAPTER_GROUPING
 ):
-    """Fit and report the four prespecified models."""
+    """Fit and report prespecified and exploratory models for an outcome."""
     data = prepare_model_data(data, outcome, grouping_level)
     print(f"\n{'=' * 65}\nOUTCOME: {outcome}\n{'=' * 65}")
     unit = observation_unit(outcome, grouping_level)
@@ -321,9 +344,17 @@ def analyze_outcome(
     else:
         print(f"Gaussian identity-link GEE on the log-transformed outcome for {unit}.")
     models = fit_models(data, outcome, family, grouping_level)
-    scale = 1.0 if family == "binomial" else float(models[LINEAR].scale)
-    if not np.isfinite(scale) or scale <= 0:
-        raise ValueError("The common QIC scale must be finite and positive.")
+    scale = common_qic_scale(models[LINEAR], family)
+    searched = models[AUTOMATED_KNOT]
+    print(
+        f"\nEXPLORATORY KNOT SEARCH: selected episode {searched.knot_found}; "
+        "at least 15 distinct episodes strictly on each side."
+    )
+    print(searched.knot_search_results.to_string(index=False))
+    print(
+        "The knot is selected using the same data; QIC and model standard errors "
+        "do not account for knot-search uncertainty."
+    )
     scores = {name: model_qic(model, scale) for name, model in models.items()}
     for name, model in models.items():
         print(f"\nMODEL: {name}\n{model.summary()}")
@@ -347,10 +378,10 @@ def analyze_outcome(
                 f"Working correlation, same chapter within an episode: {(episode_var + chapter_var) / structure.scale:.4f}"
             )
     best = min(scores, key=scores.get)
-    print("\nPRESPECIFIED MODEL COMPARISON (QIC)")
+    print("\nMODEL COMPARISON (QIC; automated knot is exploratory)")
     for name in sorted(scores, key=scores.get):
         print(f"{name}:\t\t{scores[name]:.3f};\t\tdelta QIC: {scores[name] - scores[best]:.3f}")
-    print(f"Best prespecified model: {best}")
+    print(f"Best model by QIC: {best}")
 
     selected = models[best]
     RESIDUALS_DIR.mkdir(parents=True, exist_ok=True)
