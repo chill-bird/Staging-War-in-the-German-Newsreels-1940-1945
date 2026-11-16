@@ -36,7 +36,7 @@ CHAPTER_BLACKLIST = [
 ]
 
 
-def get_chapter_cuts(row: pd.Series) -> pd.DataFrame | None:
+def get_chapter_cuts(row: pd.Series, scenes_dir: Path | None = None) -> pd.DataFrame | None:
     """Returns shot boundaries within one chapter."""
     start = row.get("start_frame")
     end = row.get("end_frame")
@@ -44,7 +44,7 @@ def get_chapter_cuts(row: pd.Series) -> pd.DataFrame | None:
     if start is None or end is None or pd.isna(start) or pd.isna(end):
         return None
 
-    scenes_df = get_scenes_df(row["filestem"])
+    scenes_df = get_scenes_df(row["filestem"], scenes_dir=scenes_dir)
     if scenes_df is None:
         return None
 
@@ -54,9 +54,11 @@ def get_chapter_cuts(row: pd.Series) -> pd.DataFrame | None:
     return scenes_df[mask].copy()
 
 
-def get_chapter_shot_durations_in_sec(row: pd.Series) -> list[float]:
+def get_chapter_shot_durations_in_sec(
+    row: pd.Series, scenes_dir: Path | None = None
+) -> list[float]:
     """Returns a list of shot durations or empty list for a chapter"""
-    cuts_df = get_chapter_cuts(row)
+    cuts_df = get_chapter_cuts(row, scenes_dir=scenes_dir)
 
     if cuts_df is None or cuts_df.empty:
         return []
@@ -241,14 +243,15 @@ def get_content_flags_df(filestem: str | None, chapter_name: str) -> pd.DataFram
     return df_flags
 
 
-def get_scenes_df(filestem: str | None) -> pd.DataFrame | None:
+def get_scenes_df(filestem: str | None, scenes_dir: Path | None = None) -> pd.DataFrame | None:
 
     if not filestem:
         return None
-    SCENES_DIR = Path(os.getenv("SCENES_DIR")).resolve()
-    assert SCENES_DIR.is_dir(), "Could not find directory for flagged content chapters."
+    if scenes_dir is None:
+        scenes_dir = Path(os.getenv("SCENES_DIR")).resolve()
+    assert scenes_dir.is_dir(), "Could not find directory for flagged content chapters."
 
-    scenes_txt = Path(SCENES_DIR / (filestem + ".mp4.scenes.txt")).resolve()
+    scenes_txt = Path(scenes_dir / (filestem + ".mp4.scenes.txt")).resolve()
     if not scenes_txt.is_file():
         return None
 

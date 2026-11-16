@@ -84,16 +84,10 @@ Due to repository size limits, raw data were deleted from repository and, instea
 
 ## Analysis
 
-### Analyze narration densities and shot lengths
+Run the analyses with:
 
 ```sh
-python -m src.analysis.lmm_analysis
-```
-
-### Q2: Analyze soldier representations shot classifications
-
-```sh
-python -m src.analysis.gee_analysis
+python -m src.analysis.main
 ```
 
 ## Data preprocessing
