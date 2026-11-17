@@ -58,14 +58,14 @@ RESIDUALS_DIR = DOC_DIR / "imgs" / "residuals"
 
 
 def plot_wpm(
-    df: pd.DataFrame, quadratic_model, spline_model, knot: int | None, episode_scale: float
+    df: pd.DataFrame, linear_model, spline_model, knot: int | None, episode_scale: float
 ):
     """Plot observed WPM with back-transformed log-WPM GEE or LMM predictions."""
 
-    plot_piecewise = spline_model is not None and knot is not None
+    plot_piecewise = _has_piecewise_model(spline_model, knot)
     sort_cols = ["episode"] + (["chapter"] if "chapter" in df else [])
     plot_df = df.sort_values(sort_cols).reset_index(drop=True)
-    model_df = quadratic_model.model.data.frame
+    model_df = linear_model.model.data.frame
     episode_min = model_df["episode"].min()
 
     x_grid = np.linspace(
@@ -75,17 +75,15 @@ def plot_wpm(
     )
     x_scaled = (x_grid - episode_min) / episode_scale
 
-    quadratic_params = _fixed_params(quadratic_model)
-    quadratic_slope_name = _episode_slope_name(quadratic_params.index)
-    quadratic_term_name = _quadratic_term_name(quadratic_params.index)
-    quadratic_design = pd.DataFrame(
+    linear_params = _fixed_params(linear_model)
+    linear_slope_name = _episode_slope_name(linear_params.index)
+    linear_design = pd.DataFrame(
         {
             "Intercept": np.ones_like(x_grid),
-            quadratic_slope_name: x_scaled,
-            quadratic_term_name: x_scaled**2,
+            linear_slope_name: x_scaled,
         }
     )
-    y_quadratic, _, _ = _model_prediction_ci(quadratic_model, quadratic_design)
+    y_linear, _, _ = _model_prediction_ci(linear_model, linear_design)
 
     if plot_piecewise:
         spline_params = _fixed_params(spline_model)
@@ -103,7 +101,7 @@ def plot_wpm(
         y_spline, spline_lo, spline_hi = _model_prediction_ci(spline_model, spline_design)
 
     # Back-transform the log-scale fits and confidence bounds to WPM.
-    y_quadratic = np.exp(y_quadratic)
+    y_linear = np.exp(y_linear)
     if plot_piecewise:
         y_spline, spline_lo, spline_hi = np.exp([y_spline, spline_lo, spline_hi])
 
@@ -120,15 +118,14 @@ def plot_wpm(
         s=30,
         ax=ax,
     )
-    # Quadratic
     ax.plot(
         x_grid,
-        y_quadratic,
+        y_linear,
         color="black",
         linewidth=2,
         linestyle="-",
         zorder=4,
-        label="Quadratic Model",
+        label="Linear Model",
     )
     if plot_piecewise:
         # Piecewise model: dashed line
@@ -150,26 +147,8 @@ def plot_wpm(
     year_positions = df.groupby("year")["episode"].min()
     for ep in year_positions:
         ax.axvline(x=ep, color="lightgrey", linestyle="-", alpha=0.5)
-    if knot is not None:
-        ax.axvline(
-            knot,
-            color="grey",
-            linestyle=":",
-            linewidth=1,
-            alpha=0.8,
-        )
-        # Axes-fraction y keeps the label inside the axes regardless of data limits
-        ax.text(
-            knot,
-            0.98,
-            f"Ep. {knot}",
-            rotation=90,
-            va="top",
-            ha="right",
-            fontsize=6,
-            color="dimgray",
-            transform=ax.get_xaxis_transform(),
-        )
+    if plot_piecewise:
+        _add_knot(ax, knot)
 
     # Secondary x-axis for years
     secax = ax.secondary_xaxis("top")
@@ -205,6 +184,28 @@ def _add_model_legend(ax):
     return legend
 
 
+def _has_piecewise_model(spline_model, knot):
+    if (spline_model is None) != (knot is None):
+        raise ValueError("A spline model and its knot must be provided together.")
+    return spline_model is not None
+
+
+def _add_knot(ax, knot):
+    """Mark and label a knot inside the plot, independently of the y-axis limits."""
+    ax.axvline(knot, color="grey", linestyle=":", linewidth=1, alpha=0.8)
+    ax.text(
+        knot,
+        0.98,
+        f"Ep. {knot:g}",
+        rotation=90,
+        va="top",
+        ha="right",
+        fontsize=6,
+        color="dimgray",
+        transform=ax.get_xaxis_transform(),
+    )
+
+
 def _fixed_effect_ci(model, design: np.ndarray, y_hat: np.ndarray, z: float = 1.96):
     """Pointwise CI of the fixed-effects prediction (design @ fe_params)."""
     k = len(model.fe_params)
@@ -224,13 +225,6 @@ def _episode_slope_name(parameter_names) -> str:
         if name in parameter_names:
             return name
     raise ValueError("Model parameters must include an episode slope.")
-
-
-def _quadratic_term_name(parameter_names) -> str:
-    for name in parameter_names:
-        if "**2" in name.replace(" ", ""):
-            return name
-    raise ValueError("Quadratic model parameters must include a squared episode term.")
 
 
 def _model_prediction_ci(model, design: pd.DataFrame, z: float = 1.96):
@@ -271,7 +265,7 @@ def plot_asl(
     plot_df = df.sort_values(sort_cols).reset_index(drop=True)
     episode_min = linear_model.model.data.frame["episode"].min()
 
-    plot_piecewise = spline_model is not None and knot is not None
+    plot_piecewise = _has_piecewise_model(spline_model, knot)
 
     x_grid = np.linspace(
         plot_df["episode"].min(),
@@ -343,16 +337,16 @@ def plot_asl(
         zorder=4,
         label="Linear Model",
     )
-    # Piecewise mixed-effects model: dashed line
-    # ax.plot(
-    #     x_grid,
-    #     y_spline,
-    #     color="black",
-    #     linewidth=2.2,
-    #     linestyle="--",
-    #     zorder=5,
-    #     label="Piecewise Linear Model",
-    # )
+    if plot_piecewise:
+        ax.plot(
+            x_grid,
+            y_spline,
+            color="black",
+            linewidth=2.2,
+            linestyle="--",
+            zorder=5,
+            label="Piecewise Linear Model",
+        )
     # 95% confidence band (only for the continuous linear line)
     ax.fill_between(x_grid, linear_lo, linear_hi, color="grey", alpha=0.25, linewidth=0, zorder=3)
 
@@ -362,14 +356,8 @@ def plot_asl(
     for ep in year_positions:
         ax.axvline(x=ep, color="lightgrey", linestyle="-", alpha=0.5)
 
-    if knot is not None:
-        ax.axvline(
-            knot,
-            color="grey",
-            linestyle=":",
-            linewidth=1,
-            alpha=0.8,
-        )
+    if plot_piecewise:
+        _add_knot(ax, knot)
     ax.set_ylim(bottom=0, top=y_max)
 
     # Outliers above the axis limit: triangles at the top edge, labelled with their value
@@ -397,20 +385,6 @@ def plot_asl(
     #             fontsize=5,
     #             color="dimgray",
     #         )
-
-    # Axes-fraction y keeps the label inside the axes regardless of data limits
-    if knot is not None:
-        ax.text(
-            knot,
-            0.98,
-            f"Ep. {knot}",
-            rotation=90,
-            va="top",
-            ha="right",
-            fontsize=6,
-            color="dimgray",
-            transform=ax.get_xaxis_transform(),
-        )
 
     # Secondary x-axis for years
     secax = ax.secondary_xaxis("top")
@@ -445,11 +419,10 @@ def _plot_stack_with_gee_model(
         data: Chapter shares or keyframe indicators with 'episode', 'year' and stack_cols.
             Values must sum to 1 per row. Episode averaging is for display only.
         curves: Dicts with
-            'model': fitted GEE (episode_scaled [+ spline_1 | I(episode_scaled ** 2)]),
+            'model': fitted GEE (episode_scaled and optionally spline_1),
             'boundary': 'bottom' (curve at P(class)) or 'top' (curve at 1 - P(class)),
-            'kind': 'spline' or 'quadratic',
-            'linestyle': matplotlib linestyle, 'label': legend label (optional),
-            'color': line colour, 'knot': (episode, label) for a vertical knot line (optional, spline only).
+            'kind': 'spline' or 'linear', 'label': legend label (optional),
+            'color': line colour, 'knot': episode of the spline knot (spline only).
         episode_min, episode_scale: Scaling used to build 'episode_scaled' when fitting.
     """
     df_episode = data.groupby(["episode", "year"], as_index=False)[stack_cols].mean()
@@ -458,7 +431,7 @@ def _plot_stack_with_gee_model(
     for col in stack_cols:
         df_plot[col] = df_plot[col].rolling(window=window, center=True, min_periods=1).mean()
 
-    fig, ax = plt.subplots(figsize=(6, 4))
+    _, ax = plt.subplots(figsize=(6, 4))
 
     ax.stackplot(
         df_plot["episode"],
@@ -475,11 +448,10 @@ def _plot_stack_with_gee_model(
         params = curve["model"].params
         eta = params["Intercept"] + params["episode_scaled"] * x_scaled
         if curve["kind"] == "spline":
-            knot_scaled = (curve["knot"][0] - episode_min) / episode_scale
+            knot_scaled = (curve["knot"] - episode_min) / episode_scale
             eta = eta + params["spline_1"] * np.maximum(x_scaled - knot_scaled, 0)
-        else:
-            quad_name = next(name for name in params.index if "**2" in name.replace(" ", ""))
-            eta = eta + params[quad_name] * x_scaled**2
+        elif curve["kind"] != "linear":
+            raise ValueError(f"Unknown curve kind: {curve['kind']!r}")
         prob = 1 / (1 + np.exp(-eta))
         if curve["boundary"] == "top":
             prob = 1 - prob
@@ -488,26 +460,13 @@ def _plot_stack_with_gee_model(
             prob,
             color=curve["color"],
             linewidth=2,
-            linestyle=curve["linestyle"],
+            linestyle="--" if curve["kind"] == "spline" else "-",
             zorder=5,
             label=curve.get("label"),
         )
         if curve["kind"] == "spline" and curve["knot"] not in drawn_knots:
             drawn_knots.add(curve["knot"])
-            knot_episode, knot_label = curve["knot"]
-            ax.axvline(knot_episode, color="grey", linestyle=":", linewidth=1, alpha=0.8)
-            # Axes-fraction y keeps the label inside the axes regardless of data limits
-            ax.text(
-                knot_episode,
-                0.98,
-                knot_label,
-                rotation=90,
-                va="top",
-                ha="right",
-                fontsize=6,
-                color="dimgray",
-                transform=ax.get_xaxis_transform(),
-            )
+            _add_knot(ax, curve["knot"])
 
     # Vertical lines for years
     year_positions = data.groupby("year")["episode"].min()
@@ -534,44 +493,56 @@ def _plot_stack_with_gee_model(
 
 def plot_shot_scale_per_episode(
     data: pd.DataFrame,
-    model_close,
-    model_long,
-    barbarossa_episode: int,
+    model_close_linear,
+    model_close_spline,
+    model_long_linear,
+    model_long_spline,
     episode_min: int,
     episode_scale: float,
 ):
-    """Shot scale shares per episode with Barbarossa-knot GEE models for close-ups and long shots.
+    """Shot scale shares with linear and automated-knot GEE models.
 
     Args:
         data: Chapter shares or keyframe indicators with 'episode', 'year', 'is_close', 'is_long'.
-        model_close, model_long: One-knot GEE models fitted on 'is_close' / 'is_long'.
+        Each spline model must have its selected episode in 'knot_found'.
     """
     df = data.copy()
     df["is_middle"] = 1 - df["is_close"] - df["is_long"]
-    knot = (barbarossa_episode, "Barbarossa")
     return _plot_stack_with_gee_model(
         df,
         stack_cols=["is_close", "is_middle", "is_long"],
         labels=["Close-up", "Medium Shot", "Long Shot"],
         curves=[
             {
-                "model": model_close,
+                "model": model_close_linear,
                 "boundary": "bottom",
-                "kind": "spline",
-                "linestyle": "-",
+                "kind": "linear",
                 "color": RED,
-                "label": "Close-up model",
-                "knot": knot,
+                "label": "Close-up: Linear Model",
             },
+            # {
+            #     "model": model_close_spline,
+            #     "boundary": "bottom",
+            #     "kind": "spline",
+            #     "color": RED,
+            #     "label": "Close-up: Piecewise Model",
+            #     "knot": model_close_spline.knot_found,
+            # },
             {
-                "model": model_long,
+                "model": model_long_linear,
                 "boundary": "bottom",
-                "kind": "spline",
-                "linestyle": "-",
+                "kind": "linear",
                 "color": BLUE,
-                "label": "Long Shot model",
-                "knot": knot,
+                "label": "Long Shot: Linear Model",
             },
+            # {
+            #     "model": model_long_spline,
+            #     "boundary": "bottom",
+            #     "kind": "spline",
+            #     "color": BLUE,
+            #     "label": "Long Shot: Piecewise Model",
+            #     "knot": model_long_spline.knot_found,
+            # },
         ],
         episode_min=episode_min,
         episode_scale=episode_scale,
@@ -582,49 +553,57 @@ def plot_shot_scale_per_episode(
 
 def plot_depiction_ratio_per_episode(
     data: pd.DataFrame,
+    model_individual_linear,
     model_individual_spline,
-    model_individual_quadratic,
-    model_collective,
-    barbarossa_episode: int,
+    model_collective_linear,
+    model_collective_spline,
     episode_min: int,
     episode_scale: float,
 ):
     """Soldier depiction shares per episode with GEE trends.
 
-    Individuals: automated best-knot piecewise model (solid) and quadratic model (dashed).
-    Collectives: Barbarossa-knot piecewise model (solid).
+    Both categories show a solid linear and a dashed automated-knot model.
 
     Args:
         data: Chapter shares or keyframe indicators with 'episode', 'year' and class columns.
-        model_individual_spline: Best-knot GEE on 'is_individual' (has 'knot_found').
-        model_individual_quadratic: Quadratic GEE on 'is_individual'.
-        model_collective: Barbarossa-knot GEE on 'is_collective'.
+        Each spline model must have its selected episode in 'knot_found'.
     """
     df = data.copy()
     df["is_multiple"] = 1 - df["is_individual"] - df["is_collective"]
-    best_knot = int(model_individual_spline.knot_found)
     return _plot_stack_with_gee_model(
         df,
         stack_cols=["is_individual", "is_multiple", "is_collective"],
         labels=["Individual", "Multiple", "Collective"],
         curves=[
             {
-                "model": model_individual_spline,
+                "model": model_individual_linear,
                 "boundary": "bottom",
-                "kind": "spline",
-                "linestyle": "-",
+                "kind": "linear",
                 "color": RED,
-                "label": "Individual: Piecewise Model",
-                "knot": (barbarossa_episode, "Barbarossa"),
+                "label": "Individual: Linear Model",
+            },
+            # {
+            #     "model": model_individual_spline,
+            #     "boundary": "bottom",
+            #     "kind": "spline",
+            #     "color": RED,
+            #     "label": "Individual: Piecewise Model",
+            #     "knot": model_individual_spline.knot_found,
+            # },
+            {
+                "model": model_collective_linear,
+                "boundary": "bottom",
+                "kind": "linear",
+                "color": BLUE,
+                "label": "Collective: Linear Model",
             },
             {
-                "model": model_collective,
+                "model": model_collective_spline,
                 "boundary": "bottom",
                 "kind": "spline",
-                "linestyle": "-",
                 "color": BLUE,
                 "label": "Collective: Piecewise Model",
-                "knot": (barbarossa_episode, "Barbarossa"),
+                "knot": model_collective_spline.knot_found,
             },
         ],
         episode_min=episode_min,

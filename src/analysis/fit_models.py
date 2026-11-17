@@ -17,6 +17,7 @@ CHAPTER_GROUPING = "episode"
 NESTED_GROUPING = "nested"
 EPISODE_SCALE = 10.0
 MANUAL_KNOTS = {"Barbarossa": 564, "Stalingrad": 648}
+INTERCEPT_ONLY = "Intercept-only"
 LINEAR = "Linear"
 QUADRATIC = "Quadratic"
 BARBAROSSA = "Barbarossa"
@@ -172,7 +173,11 @@ def fit_gee_model(
 
 
 def fit_one_knot_model(
-    data: pd.DataFrame, outcome: str, knot: float, family: str, grouping_level: str = CHAPTER_GROUPING
+    data: pd.DataFrame,
+    outcome: str,
+    knot: float,
+    family: str,
+    grouping_level: str = CHAPTER_GROUPING,
 ):
     data = data.copy()
     knot_scaled = (knot - data["episode"].min()) / EPISODE_SCALE
@@ -186,19 +191,21 @@ def fit_models(
     data: pd.DataFrame, outcome: str, family: str, grouping_level: str = CHAPTER_GROUPING
 ) -> dict:
     """Fit prespecified trends and an exploratory QIC-selected one-knot trend."""
+    intercept_only = fit_gee_model(data, outcome, "1", family, grouping_level)
     linear = fit_gee_model(data, outcome, "episode_scaled", family, grouping_level)
     scale = common_qic_scale(linear, family)
     models = {
+        INTERCEPT_ONLY: intercept_only,
         LINEAR: linear,
         QUADRATIC: fit_gee_model(
             data, outcome, "episode_scaled + I(episode_scaled ** 2)", family, grouping_level
         ),
-        BARBAROSSA: fit_one_knot_model(
-            data, outcome, MANUAL_KNOTS[BARBAROSSA], family, grouping_level
-        ),
-        STALINGRAD: fit_one_knot_model(
-            data, outcome, MANUAL_KNOTS[STALINGRAD], family, grouping_level
-        ),
+        # BARBAROSSA: fit_one_knot_model(
+        #     data, outcome, MANUAL_KNOTS[BARBAROSSA], family, grouping_level
+        # ),
+        # STALINGRAD: fit_one_knot_model(
+        #     data, outcome, MANUAL_KNOTS[STALINGRAD], family, grouping_level
+        # ),
     }
     best_model, _, search_table = find_best_model_one_knot(
         data, outcome, family, scale, grouping_level=grouping_level
@@ -349,8 +356,9 @@ def analyze_outcome(
     print(
         f"\nEXPLORATORY KNOT SEARCH: selected episode {searched.knot_found}; "
         "at least 15 distinct episodes strictly on each side."
+        "\n TOP 10 Results"
     )
-    print(searched.knot_search_results.to_string(index=False))
+    print(searched.knot_search_results.head(10).to_string(index=False))
     print(
         "The knot is selected using the same data; QIC and model standard errors "
         "do not account for knot-search uncertainty."
@@ -377,27 +385,35 @@ def analyze_outcome(
             print(
                 f"Working correlation, same chapter within an episode: {(episode_var + chapter_var) / structure.scale:.4f}"
             )
+    prespecified = tuple(
+        # name for name in (LINEAR, QUADRATIC, BARBAROSSA, STALINGRAD) if name in scores
+        name for name in (LINEAR, INTERCEPT_ONLY) if name in scores
+    )
+    best_prespecified = min(prespecified, key=scores.get)
+    print("\nPRESPECIFIED MODEL COMPARISON (QIC)")
+    for name in sorted(prespecified, key=scores.get):
+        print(
+            f"{name}:\t\t{scores[name]:.3f};\t\t"
+            f"delta QIC: {scores[name] - scores[best_prespecified]:.3f}"
+        )
+    print(f"Best prespecified model: {best_prespecified}")
+
     best = min(scores, key=scores.get)
     print("\nMODEL COMPARISON (QIC; automated knot is exploratory)")
     for name in sorted(scores, key=scores.get):
         print(f"{name}:\t\t{scores[name]:.3f};\t\tdelta QIC: {scores[name] - scores[best]:.3f}")
     print(f"Best model by QIC: {best}")
 
-    selected = models[best]
-    RESIDUALS_DIR.mkdir(parents=True, exist_ok=True)
-    residuals = np.asarray(
-        selected.resid_pearson if family == "binomial" else selected.resid_response
-    )
-    print(
-        "Residual diagnostics: marginal Pearson residuals for proportions"
-        if family == "binomial"
-        else "Residual diagnostics: marginal residuals on the log scale"
-    )
-    fig, _ = plot_residual_qq(residuals, title=f"{outcome}\n{best}", ylabel="Marginal residuals")
-    path = RESIDUALS_DIR / f"{outcome}_{grouping_level}_gee_qq.pdf"
-    try:
-        fig.savefig(path)
-    finally:
-        plt.close(fig)
+    # selected = models[best]
+    # RESIDUALS_DIR.mkdir(parents=True, exist_ok=True)
+    # residuals = np.asarray(
+    #     selected.resid_pearson if family == "binomial" else selected.resid_response
+    # )
+    # fig, _ = plot_residual_qq(residuals, title=f"{outcome}\n{best}", ylabel="Marginal residuals")
+    # path = RESIDUALS_DIR / f"{outcome}_{grouping_level}_gee_qq.pdf"
+    # try:
+    #     fig.savefig(path)
+    # finally:
+    #     plt.close(fig)
 
     return data, models, best

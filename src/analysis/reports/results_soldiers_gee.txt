@@ -1,0 +1,263 @@
+Soldier similarity threshold: 0.17
+Retained 24233 keyframes in 1548 chapters.
+Chapters without retained keyframes are excluded; each retained chapter has equal weight.
+Excluded 0 chapters with missing or non-finite model values.
+Regression coefficients are scaled to 10-episode blocks.
+
+=================================================================
+OUTCOME: is_individual
+=================================================================
+Grouping: episode. Observations: 1548 chapters in 229 episodes.
+Chapters per episode (min/median/max): 1/6/25.
+GEE: exchangeable working correlation for chapters within episodes; robust standard errors clustered by episode.
+Binomial logit GEE on equally weighted chapter proportions (fractional response).
+
+EXPLORATORY KNOT SEARCH: selected episode 569; at least 15 distinct episodes strictly on each side.
+ TOP 10 Results
+ knot        QIC  delta_QIC
+  569 420.395841   0.000000
+  568 420.401864   0.006023
+  570 420.402929   0.007087
+  567 420.407373   0.011531
+  571 420.419115   0.023274
+  566 420.422151   0.026309
+  565 420.434708   0.038867
+  572 420.441645   0.045804
+  564 420.449771   0.053930
+  621 420.455651   0.059809
+The knot is selected using the same data; QIC and model standard errors do not account for knot-search uncertainty.
+
+MODEL: Intercept-only
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:               is_individual   No. Observations:                 1548
+Model:                                 GEE   No. clusters:                      229
+Method:                        Generalized   Min. cluster size:                   1
+                      Estimating Equations   Max. cluster size:                  25
+Family:                           Binomial   Mean cluster size:                 6.8
+Dependence structure:         Exchangeable   Num. iterations:                     7
+Date:                     Tue, 17 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         14:13:57
+==============================================================================
+                 coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+Intercept     -1.0771      0.036    -30.295      0.000      -1.147      -1.007
+==============================================================================
+Skew:                          0.9905   Kurtosis:                       1.1755
+Centered skew:                 0.8399   Centered kurtosis:              1.6096
+==============================================================================
+QIC (common scale 1): 439.615
+Estimated exchangeable working correlation between chapters within an episode: 0.0830
+
+MODEL: Linear
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:               is_individual   No. Observations:                 1548
+Model:                                 GEE   No. clusters:                      229
+Method:                        Generalized   Min. cluster size:                   1
+                      Estimating Equations   Max. cluster size:                  25
+Family:                           Binomial   Mean cluster size:                 6.8
+Dependence structure:         Exchangeable   Num. iterations:                     6
+Date:                     Tue, 17 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         14:13:57
+==================================================================================
+                     coef    std err          z      P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept         -1.5041      0.070    -21.523      0.000      -1.641      -1.367
+episode_scaled     0.0344      0.005      7.207      0.000       0.025       0.044
+==============================================================================
+Skew:                          1.0778   Kurtosis:                       1.6955
+Centered skew:                 0.8399   Centered kurtosis:              1.6096
+==============================================================================
+QIC (common scale 1): 421.319
+Estimated exchangeable working correlation between chapters within an episode: 0.0281
+
+MODEL: Quadratic
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:               is_individual   No. Observations:                 1548
+Model:                                 GEE   No. clusters:                      229
+Method:                        Generalized   Min. cluster size:                   1
+                      Estimating Equations   Max. cluster size:                  25
+Family:                           Binomial   Mean cluster size:                 6.8
+Dependence structure:         Exchangeable   Num. iterations:                     7
+Date:                     Tue, 17 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         14:13:57
+==========================================================================================
+                             coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------------------
+Intercept                 -1.3608      0.107    -12.666      0.000      -1.571      -1.150
+episode_scaled            -0.0011      0.020     -0.059      0.953      -0.039       0.037
+I(episode_scaled ** 2)     0.0014      0.001      1.873      0.061   -6.69e-05       0.003
+==============================================================================
+Skew:                          1.0529   Kurtosis:                       1.6345
+Centered skew:                 0.8399   Centered kurtosis:              1.6096
+==============================================================================
+QIC (common scale 1): 420.526
+Estimated exchangeable working correlation between chapters within an episode: 0.0293
+
+MODEL: Automated knot
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:               is_individual   No. Observations:                 1548
+Model:                                 GEE   No. clusters:                      229
+Method:                        Generalized   Min. cluster size:                   1
+                      Estimating Equations   Max. cluster size:                  25
+Family:                           Binomial   Mean cluster size:                 6.8
+Dependence structure:         Exchangeable   Num. iterations:                     7
+Date:                     Tue, 17 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         14:13:57
+==================================================================================
+                     coef    std err          z      P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept         -1.2794      0.140     -9.169      0.000      -1.553      -1.006
+episode_scaled    -0.0218      0.029     -0.750      0.453      -0.079       0.035
+spline_1           0.0649      0.033      1.985      0.047       0.001       0.129
+==============================================================================
+Skew:                          1.0617   Kurtosis:                       1.6495
+Centered skew:                 0.8399   Centered kurtosis:              1.6096
+==============================================================================
+QIC (common scale 1): 420.396
+Estimated exchangeable working correlation between chapters within an episode: 0.0315
+
+PRESPECIFIED MODEL COMPARISON (QIC)
+Linear:		421.319;		delta QIC: 0.000
+Intercept-only:		439.615;		delta QIC: 18.296
+Best prespecified model: Linear
+
+MODEL COMPARISON (QIC; automated knot is exploratory)
+Automated knot:		420.396;		delta QIC: 0.000
+Quadratic:		420.526;		delta QIC: 0.130
+Linear:		421.319;		delta QIC: 0.924
+Intercept-only:		439.615;		delta QIC: 19.219
+Best model by QIC: Automated knot
+Excluded 0 chapters with missing or non-finite model values.
+Regression coefficients are scaled to 10-episode blocks.
+
+=================================================================
+OUTCOME: is_collective
+=================================================================
+Grouping: episode. Observations: 1548 chapters in 229 episodes.
+Chapters per episode (min/median/max): 1/6/25.
+GEE: exchangeable working correlation for chapters within episodes; robust standard errors clustered by episode.
+Binomial logit GEE on equally weighted chapter proportions (fractional response).
+
+EXPLORATORY KNOT SEARCH: selected episode 737; at least 15 distinct episodes strictly on each side.
+ TOP 10 Results
+ knot        QIC  delta_QIC
+  737 727.785964   0.000000
+  738 727.882557   0.096593
+  736 727.913151   0.127187
+  735 728.087889   0.301925
+  739 728.164152   0.378188
+  734 728.242920   0.456956
+  733 728.366108   0.580144
+  732 728.434678   0.648714
+  740 728.484340   0.698376
+  731 728.550895   0.764930
+The knot is selected using the same data; QIC and model standard errors do not account for knot-search uncertainty.
+
+MODEL: Intercept-only
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:               is_collective   No. Observations:                 1548
+Model:                                 GEE   No. clusters:                      229
+Method:                        Generalized   Min. cluster size:                   1
+                      Estimating Equations   Max. cluster size:                  25
+Family:                           Binomial   Mean cluster size:                 6.8
+Dependence structure:         Exchangeable   Num. iterations:                     5
+Date:                     Tue, 17 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         14:14:41
+==============================================================================
+                 coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+Intercept     -0.8837      0.046    -19.019      0.000      -0.975      -0.793
+==============================================================================
+Skew:                          0.9110   Kurtosis:                      -0.1814
+Centered skew:                 0.7222   Centered kurtosis:              0.1814
+==============================================================================
+QIC (common scale 1): 746.567
+Estimated exchangeable working correlation between chapters within an episode: 0.1013
+
+MODEL: Linear
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:               is_collective   No. Observations:                 1548
+Model:                                 GEE   No. clusters:                      229
+Method:                        Generalized   Min. cluster size:                   1
+                      Estimating Equations   Max. cluster size:                  25
+Family:                           Binomial   Mean cluster size:                 6.8
+Dependence structure:         Exchangeable   Num. iterations:                     5
+Date:                     Tue, 17 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         14:14:41
+==================================================================================
+                     coef    std err          z      P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept         -0.5265      0.082     -6.431      0.000      -0.687      -0.366
+episode_scaled    -0.0310      0.006     -5.180      0.000      -0.043      -0.019
+==============================================================================
+Skew:                          0.8487   Kurtosis:                      -0.2199
+Centered skew:                 0.7222   Centered kurtosis:              0.1814
+==============================================================================
+QIC (common scale 1): 732.395
+Estimated exchangeable working correlation between chapters within an episode: 0.0845
+
+MODEL: Quadratic
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:               is_collective   No. Observations:                 1548
+Model:                                 GEE   No. clusters:                      229
+Method:                        Generalized   Min. cluster size:                   1
+                      Estimating Equations   Max. cluster size:                  25
+Family:                           Binomial   Mean cluster size:                 6.8
+Dependence structure:         Exchangeable   Num. iterations:                     6
+Date:                     Tue, 17 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         14:14:41
+==========================================================================================
+                             coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------------------
+Intercept                 -0.5521      0.108     -5.100      0.000      -0.764      -0.340
+episode_scaled            -0.0242      0.023     -1.055      0.291      -0.069       0.021
+I(episode_scaled ** 2)    -0.0003      0.001     -0.294      0.769      -0.002       0.002
+==============================================================================
+Skew:                          0.8490   Kurtosis:                      -0.2212
+Centered skew:                 0.7222   Centered kurtosis:              0.1814
+==============================================================================
+QIC (common scale 1): 732.622
+Estimated exchangeable working correlation between chapters within an episode: 0.0847
+
+MODEL: Automated knot
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:               is_collective   No. Observations:                 1548
+Model:                                 GEE   No. clusters:                      229
+Method:                        Generalized   Min. cluster size:                   1
+                      Estimating Equations   Max. cluster size:                  25
+Family:                           Binomial   Mean cluster size:                 6.8
+Dependence structure:         Exchangeable   Num. iterations:                     5
+Date:                     Tue, 17 Nov 2026   Scale:                           1.000
+Covariance type:                    robust   Time:                         14:14:41
+==================================================================================
+                     coef    std err          z      P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept         -0.5773      0.084     -6.848      0.000      -0.743      -0.412
+episode_scaled    -0.0239      0.006     -3.756      0.000      -0.036      -0.011
+spline_1          -0.6119      0.199     -3.075      0.002      -1.002      -0.222
+==============================================================================
+Skew:                          0.8419   Kurtosis:                      -0.2363
+Centered skew:                 0.7222   Centered kurtosis:              0.1814
+==============================================================================
+QIC (common scale 1): 727.786
+Estimated exchangeable working correlation between chapters within an episode: 0.0788
+
+PRESPECIFIED MODEL COMPARISON (QIC)
+Linear:		732.395;		delta QIC: 0.000
+Intercept-only:		746.567;		delta QIC: 14.173
+Best prespecified model: Linear
+
+MODEL COMPARISON (QIC; automated knot is exploratory)
+Automated knot:		727.786;		delta QIC: 0.000
+Linear:		732.395;		delta QIC: 4.609
+Quadratic:		732.622;		delta QIC: 4.836
+Intercept-only:		746.567;		delta QIC: 18.781
+Best model by QIC: Automated knot

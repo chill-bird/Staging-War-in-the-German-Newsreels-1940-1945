@@ -5,7 +5,8 @@ from pathlib import Path
 import pandas as pd
 
 from src.analysis.fit_models import (
-    BARBAROSSA,
+    AUTOMATED_KNOT,
+    LINEAR,
     EPISODE_SCALE,
     CHAPTER_GROUPING,
     analysis_report,
@@ -88,9 +89,10 @@ def main(grouping_level: str = CHAPTER_GROUPING) -> None:
         _, long_models, _ = analyze_outcome(observations, "is_long", "binomial", grouping_level)
         plot = plot_shot_scale_per_episode(
             data,
-            close_models[BARBAROSSA],
-            long_models[BARBAROSSA],
-            barbarossa_episode=close_models[BARBAROSSA].knot_found,
+            model_close_linear=close_models[LINEAR],
+            model_close_spline=close_models[AUTOMATED_KNOT],
+            model_long_linear=long_models[LINEAR],
+            model_long_spline=long_models[AUTOMATED_KNOT],
             episode_min=int(data["episode"].min()),
             episode_scale=EPISODE_SCALE,
         )

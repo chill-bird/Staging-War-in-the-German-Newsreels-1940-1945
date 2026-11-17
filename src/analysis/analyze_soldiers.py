@@ -5,10 +5,10 @@ from pathlib import Path
 import pandas as pd
 
 from src.analysis.fit_models import (
-    BARBAROSSA,
+    AUTOMATED_KNOT,
     EPISODE_SCALE,
     CHAPTER_GROUPING,
-    QUADRATIC,
+    LINEAR,
     analysis_report,
     analyze_outcome,
     classification_observations,
@@ -91,13 +91,12 @@ def main(grouping_level: str = CHAPTER_GROUPING) -> None:
         observations = prepare_classification_data(grouping_level)
         data, individual_models, _ = analyze_outcome(observations, "is_individual", "binomial", grouping_level)
         _, collective_models, _ = analyze_outcome(observations, "is_collective", "binomial", grouping_level)
-        individual_spline = individual_models[BARBAROSSA]
         plot = plot_depiction_ratio_per_episode(
             data,
-            model_individual_spline=individual_spline,
-            model_individual_quadratic=individual_models[QUADRATIC],
-            model_collective=collective_models[BARBAROSSA],
-            barbarossa_episode=individual_spline.knot_found,
+            model_individual_linear=individual_models[LINEAR],
+            model_individual_spline=individual_models[AUTOMATED_KNOT],
+            model_collective_linear=collective_models[LINEAR],
+            model_collective_spline=collective_models[AUTOMATED_KNOT],
             episode_min=int(data["episode"].min()),
             episode_scale=EPISODE_SCALE,
         )
@@ -107,7 +106,6 @@ def main(grouping_level: str = CHAPTER_GROUPING) -> None:
             plot.savefig(output)
         finally:
             plot.close()
-        print(f"Soldier-depiction plot saved to: {output}")
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ import pandas as pd
 
 from src.analysis.fit_models import (
     CHAPTER_GROUPING,
+    AUTOMATED_KNOT,
     EPISODE_SCALE,
     LINEAR,
     NESTED_GROUPING,
@@ -76,11 +77,12 @@ def main(grouping_level: str = CHAPTER_GROUPING) -> None:
             data if grouping_level == NESTED_GROUPING
             else data.assign(durations=data["average_shot_length"])
         )
+        knot_model = models[AUTOMATED_KNOT]
         fig, _ = plot_asl(
             df=plot_data,
             linear_model=models[LINEAR],
-            spline_model=None,
-            knot=None,
+            spline_model=knot_model,
+            knot=knot_model.knot_found,
             episode_scale=EPISODE_SCALE,
             individual_shots=grouping_level == NESTED_GROUPING,
         )

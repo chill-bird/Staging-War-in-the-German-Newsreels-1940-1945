@@ -9,7 +9,8 @@ import pandas as pd
 from src.analysis.fit_models import (
     CHAPTER_GROUPING,
     EPISODE_SCALE,
-    QUADRATIC,
+    AUTOMATED_KNOT,
+    LINEAR,
     analysis_report,
     analyze_outcome,
     grouped_figure_path,
@@ -42,11 +43,12 @@ def main() -> None:
         print("Combat chapters; WPM uses chapter duration and transcription word count.")
         data = prepare_wpm_data(get_filtered_chapters_df("combat"))
         data, models, best = analyze_outcome(data, "log_wpm", "gaussian", CHAPTER_GROUPING)
+        knot_model = models[AUTOMATED_KNOT]
         fig, _ = plot_wpm(
             df=data,
-            quadratic_model=models[QUADRATIC],
-            spline_model=None,
-            knot=None,
+            linear_model=models[LINEAR],
+            spline_model=knot_model,
+            knot=knot_model.knot_found,
             episode_scale=EPISODE_SCALE,
         )
         try:
