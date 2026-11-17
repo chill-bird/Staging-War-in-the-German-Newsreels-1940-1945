@@ -9,6 +9,7 @@ src/analysis/notebooks
 src/analysis/Noto_**
 src/transcribe/convert_mp4_to_mp3.sh
 references.bib
+NOTES.md
 
 
 # Byte-compiled / optimized / DLL files
