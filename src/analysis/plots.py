@@ -411,6 +411,7 @@ def _plot_stack_with_gee_model(
     episode_scale: float,
     ylabel: str,
     title: str,
+    legend_loc: str = "upper right",
     window: int = 5,
 ):
     """Stackplot of smoothed per-episode class shares with fitted GEE curves on top.
@@ -484,7 +485,7 @@ def _plot_stack_with_gee_model(
     ax.set_ylim(0, 1)
     ax.set_xlim(data["episode"].min(), data["episode"].max())
 
-    leg = ax.legend(loc="upper right", frameon=True, fontsize=9)
+    leg = ax.legend(loc=legend_loc, frameon=True, fontsize=9)
     leg.get_frame().set_facecolor("white")
     leg.get_frame().set_alpha(0.7)
 
@@ -610,6 +611,7 @@ def plot_depiction_ratio_per_episode(
         episode_scale=episode_scale,
         ylabel="Shares of Soldier Depictions",
         title="Development of Soldier Depiction Shares over time",
+        legend_loc="upper left"
     )
 
 
